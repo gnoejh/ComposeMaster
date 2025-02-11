@@ -14,7 +14,7 @@ This document outlines a 16-week curriculum for learning Android Compose, incorp
 - Create a basic Kotlin project and write simple Kotlin programs.
 - Explore the structure of a basic Android project.
 
-## Week 2: Introduction to Compose and Setup
+## Week 2: Compose and Layout Basics
 
 **Topics:**
 - Overview of Jetpack Compose: What is it, why use it, declarative UI paradigm.
@@ -22,26 +22,20 @@ This document outlines a 16-week curriculum for learning Android Compose, incorp
 - Setting up the Compose environment: Project creation, adding Compose dependencies.
 - Your first composable: `@Composable` annotation, `Text`, `Column`, `Row`, Previews.
 - Understanding the Compose Compiler.
-
-**Assignments:**
-- Create a new Android project with Compose.
-- Build a simple "Hello, Compose!" app.
-- Experiment with basic composables and previews.
-
-## Week 3: Layout Basics
-
-**Topics:**
 - `Column`, `Row`, `Box` in detail: Understanding their roles and usage.
 - Modifiers: `padding`, `fillMaxWidth`, `fillMaxSize`, `weight`, `height`, `width`, `offset`, `clickable`.
 - Alignment and arrangement: `Arrangement`, `Alignment`.
 - Understanding Recomposition: How Compose updates the UI efficiently.
 
 **Assignments:**
+- Create a new Android project with Compose.
+- Build a simple "Hello, Compose!" app.
+- Experiment with basic composables and previews.
 - Build a simple layout with nested `Column` and `Row`.
 - Practice using modifiers to control layout behavior.
 - Experiment with different alignment and arrangement options.
 
-## Week 4: Common UI Elements
+## Week 3: Common UI Elements
 
 **Topics:**
 - `Image`, `Button`, `TextField`, `Checkbox`, `RadioButton`, `Switch`.
@@ -52,7 +46,7 @@ This document outlines a 16-week curriculum for learning Android Compose, incorp
 - Create a form with various UI elements.
 - Implement basic event handling (e.g., button clicks, text input).
 
-## Week 5: Lists and Grids
+## Week 4: Lists and Grids
 
 **Topics:**
 - `LazyColumn`, `LazyRow`, `LazyVerticalGrid`: Efficiently displaying lists and grids.
@@ -65,7 +59,7 @@ This document outlines a 16-week curriculum for learning Android Compose, incorp
 - Customize the appearance of list items.
 - Create a grid layout using `LazyVerticalGrid`.
 
-## Week 6: Advanced Layouts
+## Week 5: Advanced Layouts
 
 **Topics:**
 - `ConstraintLayout` in Compose: Building complex layouts with constraints.
@@ -76,7 +70,7 @@ This document outlines a 16-week curriculum for learning Android Compose, incorp
 - Create a complex layout using `ConstraintLayout`.
 - Build a basic app structure with `Scaffold`, `TopAppBar`, and `BottomNavigation`.
 
-## Week 7: Introduction to Navigation
+## Week 6: Introduction to Navigation
 
 **Topics:**
 - Introduction to Compose Navigation: Navigating between composables.
@@ -90,7 +84,7 @@ This document outlines a 16-week curriculum for learning Android Compose, incorp
 - Pass data between screens using navigation arguments.
 - Implement deep links.
 
-## Week 8: OpenCV Fundamentals
+## Week 7: OpenCV Fundamentals
 
 **Topics:**
 - **Introduction to OpenCV:**
@@ -108,7 +102,7 @@ This document outlines a 16-week curriculum for learning Android Compose, incorp
 - Apply basic image filters (e.g., grayscale, blur).
 - Implement image transformations using OpenCV.
 
-## Week 9: State Management - Basics
+## Week 8: State Management - Basics
 
 **Topics:**
 - What is state in Compose?
@@ -121,7 +115,7 @@ This document outlines a 16-week curriculum for learning Android Compose, incorp
 - Practice state hoisting.
 - Use `rememberSaveable` to save the state.
 
-## Week 10: State Management - Advanced
+## Week 9: State Management - Advanced
 
 **Topics:**
 - Managing state within a composable: Local state vs. hoisted state.
@@ -133,7 +127,7 @@ This document outlines a 16-week curriculum for learning Android Compose, incorp
 - Build an app with complex state interactions.
 - Use side effects for actions outside of recomposition (e.g., network requests).
 
-## Week 11: ViewModel Integration
+## Week 10: ViewModel Integration
 
 **Topics:**
 - Using `ViewModel` with Compose: Managing UI-related data.
@@ -145,7 +139,7 @@ This document outlines a 16-week curriculum for learning Android Compose, incorp
 - Integrate `ViewModel` into an existing app.
 - Observe and react to state changes from the `ViewModel`.
 
-## Week 12: Theming and Styling
+## Week 11: Theming and Styling
 
 **Topics:**
 - `MaterialTheme`, `Colors`, `Typography`, `Shapes`: Defining the app's visual style.
@@ -158,7 +152,7 @@ This document outlines a 16-week curriculum for learning Android Compose, incorp
 - Implement dark mode support.
 - Style various composables using the custom theme.
 
-## Week 13: Icons, Images, and Animations
+## Week 12: Icons, Images, and Animations
 
 **Topics:**
 - Using vector drawables: Scalable icons.
@@ -170,7 +164,7 @@ This document outlines a 16-week curriculum for learning Android Compose, incorp
 - Add icons and images to an app.
 - Implement simple animations using `animate*AsState`.
 
-## Week 14: Advanced Animations and Custom Layouts
+## Week 13: Advanced Animations and Custom Layouts
 
 **Topics:**
 - `AnimatedVisibility`: Animating the appearance and disappearance of elements.
@@ -184,7 +178,7 @@ This document outlines a 16-week curriculum for learning Android Compose, incorp
 - Create more complex animations using `AnimatedVisibility` and `AnimatedContent`.
 - Build a custom layout.
 
-## Week 15: Accessibility, Testing, Networking and Data Persistence
+## Week 14: Accessibility, Testing, Networking and Data Persistence
 
 **Topics:**
 - Making Compose UIs accessible: Semantic properties, content descriptions.
@@ -203,7 +197,7 @@ This document outlines a 16-week curriculum for learning Android Compose, incorp
 - Fetch data from an API using Retrofit.
 - Use Room for local data persistence.
 
-## Week 16: TensorFlow Lite and PyTorch
+## Week 15: TensorFlow Lite and PyTorch
 
 **Topics:**
 - TensorFlow Lite: Introduction, setup, and basic usage.

@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">ComposeLayouts</string>
+    <string name="name">Hong Jeong</string>
+    <string name="id">12345678</string>
+    <string name="email">h.jeong@mail.inha.uz</string>
+    <string name="phone">0123456789</string>
+</resources>

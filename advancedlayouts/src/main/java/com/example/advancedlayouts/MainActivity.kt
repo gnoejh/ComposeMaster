@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
 import com.example.advancedlayouts.ui.theme.ComposeMasterTheme
 
 class MainActivity : ComponentActivity() {
@@ -55,11 +57,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ComposeMasterTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    DemoApp(
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                DemoApp( )
+
             }
         }
     }
@@ -74,7 +73,7 @@ fun DemoApp(modifier: Modifier = Modifier) {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Advanced Layout and Navigation") })
+            TopAppBar(title = { Text("Advanced Layouts and Navigation") })
         },
         bottomBar = {
             NavigationBar {
@@ -94,7 +93,7 @@ fun DemoApp(modifier: Modifier = Modifier) {
                 0 -> FormElementsDemo()
                 1 -> ListDemo()
                 2 -> GridDemo()
-//                3 -> ConstraintLayoutExample()
+                3 -> ConstraintLayoutExample()
             }
         }
     }
@@ -250,32 +249,33 @@ fun GridDemo() {
 // --------------------------------------------------
 // 4. Advanced Layouts with ConstraintLayout
 // --------------------------------------------------
-//@Composable
-//fun ConstraintLayoutExample() {
-//    ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-//        val (title, button) = createRefs()
-//
-//        Text(
-//            text = "ConstraintLayout Title",
-//            modifier = Modifier
-//                .constrainAs(title) {
-//                    top.linkTo(parent.top, margin = 16.dp)
-//                    start.linkTo(parent.start)
-//                    end.linkTo(parent.end)
-//                }
-//        )
-//
-//        Button(
-//            onClick = { /* TODO: Add your action */ },
-//            modifier = Modifier.constrainAs(button) {
-//                bottom.linkTo(parent.bottom, margin = 16.dp)
-//                end.linkTo(parent.end, margin = 16.dp)
-//            }
-//        ) {
-//            Text("Click Me")
-//        }
-//    }
-//}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ConstraintLayoutExample() {
+    ConstraintLayout(modifier = Modifier.fillMaxSize()) {
+        val (title, button) = createRefs()
+
+        Text(
+            text = "ConstraintLayout Title",
+            modifier = Modifier
+                .constrainAs(title) {
+                    top.linkTo(parent.top, margin = 16.dp)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }
+        )
+
+        Button(
+            onClick = { /* TODO: Add your action */ },
+            modifier = Modifier.constrainAs(button) {
+                bottom.linkTo(parent.bottom, margin = 16.dp)
+                end.linkTo(parent.end, margin = 16.dp)
+            }
+        ) {
+            Text("Click Me")
+        }
+    }
+}
 
 // --------------------------------------------------
 // 5. Main Activity or Preview

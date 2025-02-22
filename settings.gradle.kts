@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "Compose Master"
 include(":app")
 include(":composelayouts")
+include(":advancedlayouts")

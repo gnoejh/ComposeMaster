@@ -5,7 +5,10 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
@@ -18,23 +21,35 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -103,6 +118,7 @@ fun DemoApp(modifier: Modifier = Modifier) {
                 }
             }
         }
+
     ) { innerPadding ->
         Box(
             modifier = modifier
@@ -118,6 +134,8 @@ fun DemoApp(modifier: Modifier = Modifier) {
                 5 -> InfiniteAnimationScreen()
                 6 -> Lab()
                 7 -> Lab2()
+                8 -> ContentAnimation()
+                9 -> Crossfade()
             }
         }
     }
@@ -394,6 +412,57 @@ fun Lab() {
     }
 }
 
+@Composable
+fun ContentAnimation() {
+    var isFirstContent by remember { mutableStateOf(true) }
+    Column {
+        // Toggle content on click (e.g., from a button)
+        Button(onClick = { isFirstContent = !isFirstContent }) {
+            Text("Toggle Content")
+        }
+        AnimatedContent(
+            targetState = isFirstContent,
+            transitionSpec = {
+                if (targetState) {
+                    (slideInHorizontally { width -> -width } + fadeIn()).togetherWith(
+                        slideOutHorizontally { width -> width } + fadeOut()
+                    )
+                } else {
+                    (slideInHorizontally { width -> width } + fadeIn()).togetherWith(
+                        slideOutHorizontally { width -> -width } + fadeOut()
+                    )
+                }.using(
+                    SizeTransform(clip = false)
+                )
+            }, label = ""
+        ) { targetIsFirstContent ->
+            if (targetIsFirstContent) {
+                Text("First Content")
+            } else {
+                Text("Second Content")
+            }
+        }
+    }
+}
+
+
+@Composable
+fun Crossfade() {
+    var isFirstContent by remember { mutableStateOf(true) }
+    Column {
+        // Toggle content on click (e.g., from a button)
+        Button(onClick = { isFirstContent = !isFirstContent }) {
+            Text("Toggle Content")
+        }
+        Crossfade(targetState = isFirstContent, label = "") { targetIsFirstContent ->
+            if (targetIsFirstContent) {
+                Text("First Content")
+            } else {
+                Text("Second Content")
+            }
+        }
+    }
+}
 /* ============================================================
    8. Lab2 (Breakout Game)
       -- Uses containerWidth/Height from the content area.

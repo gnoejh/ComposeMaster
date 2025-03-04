@@ -72,9 +72,10 @@ fun ColorAnimation() {
 @Composable
  fun ContentAnimation() {
      var isFirstContent by remember { mutableStateOf(true) }     // Toggle content on click (e.g., from a button)
-     // Button(onClick = { isFirstContent = !isFirstContent }) {
-     //     Text("Toggle Content")
-     // }     AnimatedContent(
+     Button(onClick = { isFirstContent = !isFirstContent }) {
+         Text("Toggle Content")
+     }     
+     AnimatedContent(
          targetState = isFirstContent,
          transitionSpec = {
              if (targetState) {
@@ -105,9 +106,10 @@ fun ColorAnimation() {
 @Composable
 fun CrossfadeAnimation() {
      var isFirstContent by remember { mutableStateOf(true) }     // Toggle content on click (e.g., from a button)
-     //Button(onClick = { isFirstContent = !isFirstContent }) {
-     //    Text("Toggle Content")
-     //}     Crossfade(targetState = isFirstContent, label = "") { targetIsFirstContent ->
+     Button(onClick = { isFirstContent = !isFirstContent }) {
+         Text("Toggle Content")
+     }     
+     Crossfade(targetState = isFirstContent, label = "") { targetIsFirstContent ->
          if (targetIsFirstContent) {
              Text("First Content")
          } else {

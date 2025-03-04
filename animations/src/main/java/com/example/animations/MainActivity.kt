@@ -46,10 +46,15 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -98,26 +103,41 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun DemoApp(modifier: Modifier = Modifier) {
     var selectedTab by remember { mutableStateOf(0) }
-    val tabs = listOf("Float", "Color", "Dp", "Visibility", "Draggable", "Infinite", "Lab", "Lab2")
+    val tabs = listOf("Float", "Color", "Dp", "Visibility", "Draggable", "Infinite", "ContentAnim", "Crossfade", "Lab", "Lab2")
+    var expanded by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Jetpack Compose Animations") }
+                title = { Text("Jetpack Compose Animations") },
+                actions = {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(Icons.Filled.Menu, contentDescription = "Menu")
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        tabs.forEachIndexed { index, label ->
+                            DropdownMenuItem(
+                                text = { Text(label) },
+                                onClick = {
+                                    selectedTab = index
+                                    expanded = false // Close the menu after selection
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Filled.Check,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
             )
         },
-        bottomBar = {
-            NavigationBar {
-                tabs.forEachIndexed { index, label ->
-                    NavigationBarItem(
-                        selected = (selectedTab == index),
-                        onClick = { selectedTab = index },
-                        label = { Text(label) },
-                        icon = {}
-                    )
-                }
-            }
-        }
 
     ) { innerPadding ->
         Box(
@@ -132,10 +152,11 @@ fun DemoApp(modifier: Modifier = Modifier) {
                 3 -> VisibilityAnimationScreen()
                 4 -> DraggableAnimationScreen()
                 5 -> InfiniteAnimationScreen()
-                6 -> Lab()
-                7 -> Lab2()
-                8 -> ContentAnimation()
-                9 -> Crossfade()
+                6 -> ContentAnimation()
+                7 -> Crossfade()
+                8 -> Lab()
+                9 -> Lab2()
+
             }
         }
     }

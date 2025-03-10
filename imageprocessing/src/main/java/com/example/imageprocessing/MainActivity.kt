@@ -124,8 +124,6 @@ fun DemoApp(modifier: Modifier = Modifier) {
         "Image Transform",
         "Canvas Basics",
         "Canvas Advanced",
-        "Video Playback",
-        "Video Effects",
     )
     var expanded by remember { mutableStateOf(false) }
 
@@ -173,8 +171,6 @@ fun DemoApp(modifier: Modifier = Modifier) {
                 1 -> ImageTransformFunction()
                 2 -> CanvasBasicsFunction()
                 3 -> CanvasAdvancedFunction()
-                4 -> VideoPlaybackFunction()
-                5 -> VideoEffectsFunction()
             }
         }
     }
@@ -805,181 +801,6 @@ fun CanvasAdvancedFunction() {
     }
 }
 
-/* ============================================================
-   5. VideoPlaybackFunction
-   ============================================================ */
-@Composable
-fun VideoPlaybackFunction() {
-    val context = LocalContext.current
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-            .background(Color.LightGray),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Advanced Video Playback",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        val videoUri = remember {
-            "android.resource://${context.packageName}/${R.raw.video_test}".toUri()
-        }
-
-        val exoPlayer = remember {
-            ExoPlayer.Builder(context).build().apply {
-                setMediaItem(MediaItem.fromUri(videoUri))
-                prepare()
-                playWhenReady = true
-            }
-        }
-
-        DisposableEffect(exoPlayer) {
-            onDispose {
-                exoPlayer.release()
-            }
-        }
-
-        AndroidView(
-            factory = { ctx ->
-                PlayerView(ctx).apply {
-                    player = exoPlayer
-                    useController = true
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(9 / 16f)
-        )
-    }
-}
-
-/* ============================================================
-   6. VideoEffectsFunction
-   ============================================================ */
-@UnstableApi
-fun shaderInverted(): Effect {
-    return RgbFilter.createInvertedFilter()
-}
-
-@UnstableApi
-fun shaderCustom(): GlEffect {
-    val lutSize = 64  // The size of the LUT cube
-    val bitmapWidth = lutSize
-    val bitmapHeight = lutSize * lutSize  // Ensure N × N² format
-
-    val grayscaleBitmap = createBitmap(bitmapWidth, bitmapHeight).apply {
-        for (blue in 0 until lutSize) {
-            for (green in 0 until lutSize) {
-                for (red in 0 until lutSize) {
-                    val luminance =
-                        ((red + green + blue).toFloat() / (3 * (lutSize - 1)) * 255).toInt()
-                    val color = android.graphics.Color.rgb(luminance, luminance, luminance)
-                    this[red, green * lutSize + blue] = color
-                }
-            }
-        }
-    }
-    return SingleColorLut.createFromBitmap(grayscaleBitmap)
-}
-
-@androidx.annotation.OptIn(UnstableApi::class)
-@Composable
-fun VideoEffectsFunction() {
-    val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-    var selectedEffect by remember { mutableStateOf<GlEffect?>(null) }
-
-    val effects = listOf(
-        "No Effect" to null,
-        "Inverted" to shaderInverted(),
-        "Grayscale LUT" to shaderCustom()
-    )
-
-    val videoUri = remember {
-        "android.resource://${context.packageName}/${R.raw.video_test}".toUri()
-    }
-
-    val player = remember(context) {
-        ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(videoUri))
-            prepare()
-            playWhenReady = true
-            setVideoEffects(listOfNotNull(selectedEffect))
-        }
-    }
-
-    DisposableEffect(player, lifecycleOwner) {
-        val lifecycleObserver = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_RESUME -> player.play()
-                Lifecycle.Event.ON_PAUSE -> player.pause()
-                Lifecycle.Event.ON_STOP -> {
-                    player.pause()
-                    player.seekTo(0)
-                }
-                else -> Unit
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
-
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
-            player.release()
-        }
-    }
-
-    LaunchedEffect (selectedEffect) {
-        player.setVideoEffects(listOfNotNull(selectedEffect))
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Advanced Video Effects",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        AndroidView(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(9f / 12f),
-            factory = { ctx ->
-                PlayerView(ctx).apply {
-                    this.player = player
-                    useController = true
-                }
-            }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        LazyColumn {
-            items(effects.size) { index ->
-                val (effectName, effect) = effects[index]
-                Button(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(4.dp),
-                    onClick = { selectedEffect = effect as GlEffect? }
-                ) {
-                    Text(effectName)
-                }
-            }
-        }
-    }
-}
 
 
 @Composable

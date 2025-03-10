@@ -1,7 +1,6 @@
 package com.example.imageprocessing
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.drawable.BitmapDrawable
@@ -72,7 +71,6 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -84,6 +82,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.set
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -127,7 +126,6 @@ fun DemoApp(modifier: Modifier = Modifier) {
         "Canvas Advanced",
         "Video Playback",
         "Video Effects",
-        "Advanced Filters"
     )
     var expanded by remember { mutableStateOf(false) }
 
@@ -171,13 +169,12 @@ fun DemoApp(modifier: Modifier = Modifier) {
                 .fillMaxSize()
         ) {
             when (selectedTab) {
-                0 -> ImageDisplayFunction()      // will be implemented.
-                1 -> ImageTransformFunction()  // will be implemented.
-                2 -> CanvasBasicsFunction()    // will be implemented.
-                3 -> CanvasAdvancedFunction()  // will be implemented.
-                4 -> VideoPlaybackFunction()   // will be implemented.
-                5 -> VideoEffectsFunction()    // will be implemented.
-                6 -> AdvancedFiltersFunction() // will be implemented.
+                0 -> ImageDisplayFunction()
+                1 -> ImageTransformFunction()
+                2 -> CanvasBasicsFunction()
+                3 -> CanvasAdvancedFunction()
+                4 -> VideoPlaybackFunction()
+                5 -> VideoEffectsFunction()
             }
         }
     }
@@ -865,15 +862,44 @@ fun VideoPlaybackFunction() {
 /* ============================================================
    6. VideoEffectsFunction
    ============================================================ */
+@UnstableApi
+fun shaderInverted(): Effect {
+    return RgbFilter.createInvertedFilter()
+}
+
+@UnstableApi
+fun shaderCustom(): GlEffect {
+    val lutSize = 64  // The size of the LUT cube
+    val bitmapWidth = lutSize
+    val bitmapHeight = lutSize * lutSize  // Ensure N × N² format
+
+    val grayscaleBitmap = createBitmap(bitmapWidth, bitmapHeight).apply {
+        for (blue in 0 until lutSize) {
+            for (green in 0 until lutSize) {
+                for (red in 0 until lutSize) {
+                    val luminance =
+                        ((red + green + blue).toFloat() / (3 * (lutSize - 1)) * 255).toInt()
+                    val color = android.graphics.Color.rgb(luminance, luminance, luminance)
+                    this[red, green * lutSize + blue] = color
+                }
+            }
+        }
+    }
+    return SingleColorLut.createFromBitmap(grayscaleBitmap)
+}
+
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun VideoEffectsFunction() {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    var applyEffect by remember { mutableStateOf(false) }
-    val currentEffect = remember(applyEffect) {
-        if (applyEffect) ShaderProgram() else null
-    }
+    var selectedEffect by remember { mutableStateOf<GlEffect?>(null) }
+
+    val effects = listOf(
+        "No Effect" to null,
+        "Inverted" to shaderInverted(),
+        "Grayscale LUT" to shaderCustom()
+    )
 
     val videoUri = remember {
         "android.resource://${context.packageName}/${R.raw.video_test}".toUri()
@@ -884,7 +910,7 @@ fun VideoEffectsFunction() {
             setMediaItem(MediaItem.fromUri(videoUri))
             prepare()
             playWhenReady = true
-            setVideoEffects(listOfNotNull(currentEffect))
+            setVideoEffects(listOfNotNull(selectedEffect))
         }
     }
 
@@ -897,7 +923,6 @@ fun VideoEffectsFunction() {
                     player.pause()
                     player.seekTo(0)
                 }
-
                 else -> Unit
             }
         }
@@ -909,8 +934,8 @@ fun VideoEffectsFunction() {
         }
     }
 
-    SideEffect {
-        player.setVideoEffects(listOfNotNull(currentEffect))
+    LaunchedEffect (selectedEffect) {
+        player.setVideoEffects(listOfNotNull(selectedEffect))
     }
 
     Column(
@@ -929,160 +954,7 @@ fun VideoEffectsFunction() {
         AndroidView(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(9f / 16f),
-            factory = { ctx ->
-                PlayerView(ctx).apply {
-                    this.player = player
-                    useController = true
-                }
-            }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = { applyEffect = !applyEffect }) {
-            Text(if (applyEffect) "Remove Filter" else "Apply Filter")
-        }
-    }
-}
-
-@UnstableApi
-fun ShaderProgram(): Effect {
-//    return RgbFilter.createInvertedFilter()
-    return RgbFilter.createGrayscaleFilter()
-}
-
-@UnstableApi
-fun ShaderProgram1(): GlEffect {
-    val size = 2
-    val grayscaleBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888).apply {
-        for (y in 0 until size) {
-            for (x in 0 until size) {
-                val luminance = ((x + y).toFloat() / (size * 2 - 2))
-                val gray: Color = Color.hsv(hue = 0f, saturation = 0f, value = luminance)
-                setPixel(x, y, gray.toArgb()) // Convert Compose Color to Int
-            }
-        }
-    }
-
-    return SingleColorLut.createFromBitmap(grayscaleBitmap)
-}
-
-/* ============================================================
-   7. AdvancedFiltersFunction
-   ============================================================ */
-
-//import android.graphics.Bitmap
-//import android.graphics.BitmapFactory
-//import androidx.compose.foundation.background
-//import androidx.compose.foundation.layout.Column
-//import androidx.compose.foundation.layout.Spacer
-//import androidx.compose.foundation.layout.aspectRatio
-//import androidx.compose.foundation.layout.fillMaxSize
-//import androidx.compose.foundation.layout.fillMaxWidth
-//import androidx.compose.foundation.layout.height
-//import androidx.compose.foundation.layout.padding
-//import androidx.compose.foundation.lazy.LazyColumn
-//import androidx.compose.foundation.lazy.items
-//import androidx.compose.material3.Button
-//import androidx.compose.material3.MaterialTheme
-//import androidx.compose.material3.Text
-//import androidx.compose.runtime.Composable
-//import androidx.compose.runtime.DisposableEffect
-//import androidx.compose.runtime.LaunchedEffect
-//import androidx.compose.runtime.getValue
-//import androidx.compose.runtime.mutableStateOf
-//import androidx.compose.runtime.remember
-//import androidx.compose.runtime.setValue
-//import androidx.compose.ui.Alignment
-//import androidx.compose.ui.Modifier
-//import androidx.compose.ui.graphics.Color
-//import androidx.compose.ui.graphics.toArgb
-//import androidx.compose.ui.platform.LocalContext
-//import androidx.compose.ui.platform.LocalLifecycleOwner
-//import androidx.compose.ui.text.font.FontWeight
-//import androidx.compose.ui.unit.dp
-//import androidx.compose.ui.viewinterop.AndroidView
-//import androidx.core.net.toUri
-//import androidx.lifecycle.Lifecycle
-//import androidx.lifecycle.LifecycleEventObserver
-//import androidx.media3.common.Effect
-//import androidx.media3.common.MediaItem
-//import androidx.media3.common.util.UnstableApi
-//import androidx.media3.effect.SingleColorLut
-//import androidx.media3.exoplayer.ExoPlayer
-//import androidx.media3.ui.PlayerView
-//import com.example.imageprocessing.R
-
-@androidx.annotation.OptIn(UnstableApi::class)
-@Composable
-fun AdvancedFiltersFunction() {
-    val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-    var selectedEffect by remember { mutableStateOf<GlEffect?>(null) }
-
-    val videoUri = remember {
-        "android.resource://${context.packageName}/${R.raw.video_test}".toUri()
-    }
-
-    val player = remember(context) {
-        ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(videoUri))
-            prepare()
-            playWhenReady = true
-        }
-    }
-
-    DisposableEffect(player, lifecycleOwner) {
-        val lifecycleObserver = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_RESUME -> player.play()
-                Lifecycle.Event.ON_PAUSE -> player.pause()
-                Lifecycle.Event.ON_STOP -> {
-                    player.pause()
-                    player.seekTo(0)
-                }
-
-                else -> Unit
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
-
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
-            player.release()
-        }
-    }
-
-    LaunchedEffect(selectedEffect) {
-        player.setVideoEffects(listOfNotNull(selectedEffect) as List<Effect>)
-    }
-
-    val filters = listOf(
-        "No Filter" to null,
-        "Grayscale" to createGrayscaleLut(),
-        "Inverted" to createInvertedLut(),
-        "Red Tone" to createRedToneLut(context),
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .background(Color.LightGray),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Advanced Video Filters",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        AndroidView(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(9f / 16f),
+                .aspectRatio(9f / 12f),
             factory = { ctx ->
                 PlayerView(ctx).apply {
                     this.player = player
@@ -1094,85 +966,20 @@ fun AdvancedFiltersFunction() {
         Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn {
-            items(filters.size) { index ->
-                val (filterName, filterEffect) = filters[index]
-                Button(onClick = { selectedEffect = filterEffect }) {
-                    Text(filterName)
+            items(effects.size) { index ->
+                val (effectName, effect) = effects[index]
+                Button(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(4.dp),
+                    onClick = { selectedEffect = effect as GlEffect? }
+                ) {
+                    Text(effectName)
                 }
             }
         }
     }
 }
-
-@androidx.annotation.OptIn(UnstableApi::class)
-fun createGrayscaleLut(): GlEffect {
-    val size = 2
-    val grayscaleBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888).apply {
-        for (y in 0 until size) {
-            for (x in 0 until size) {
-                val luminance = ((x + y).toFloat() / (size * 2 - 2))
-                val gray: Color = Color.hsv(hue = 0f, saturation = 0f, value = luminance)
-                setPixel(x, y, gray.toArgb())
-            }
-        }
-    }
-    return SingleColorLut.createFromBitmap(grayscaleBitmap)
-}
-
-@androidx.annotation.OptIn(UnstableApi::class)
-fun createInvertedLut(): GlEffect {
-    val size = 2
-    val invertedBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888).apply {
-        for (y in 0 until size) {
-            for (x in 0 until size) {
-                val r = 1f - (x.toFloat() / (size - 1))
-                val g = 1f - (y.toFloat() / (size - 1))
-                val b = 1f - ((x + y).toFloat() / (size * 2 - 2))
-
-                val invertedColor = Color(r, g, b)
-                setPixel(x, y, invertedColor.toArgb())
-            }
-        }
-    }
-    return SingleColorLut.createFromBitmap(invertedBitmap)
-}
-
-@androidx.annotation.OptIn(UnstableApi::class)
-fun createRedToneLut(context: android.content.Context): GlEffect {
-//    val red_tone: GlEffect = RgbFilter(1f, 0f, 0f)
-//    val red_tone: GlEffect = SingleColorLut(Color.Red.toArgb())
-
-//    val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.red_tone)
-//    return SingleColorLut.createFromBitmap(bitmap)
-
-    //Instead, create a custom bitmap
-    val size = 2
-    val redBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888).apply {
-        for (y in 0 until size) {
-            for (x in 0 until size) {
-                val r = 1f - (x.toFloat() / (size - 1))
-                val g = 0f
-                val b = 0f
-                val redColor = Color(r, g, b)
-                setPixel(x, y, redColor.toArgb())
-            }
-        }
-    }
-    return SingleColorLut.createFromBitmap(redBitmap)
-
-//    val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.red_tone)
-//    return SingleColorLut.createFromBitmap(bitmap)
-}
-
-
-
-
-
-
-
-
-
-
 
 
 @Composable

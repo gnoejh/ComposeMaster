@@ -6,6 +6,7 @@ import android.graphics.Paint
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -13,18 +14,17 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -44,9 +44,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -79,27 +77,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
-import androidx.core.graphics.set
-import androidx.core.net.toUri
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.media3.common.Effect
-import androidx.media3.common.MediaItem
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.effect.GlEffect
-import androidx.media3.effect.RgbFilter
-import androidx.media3.effect.SingleColorLut
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlin.math.abs
 
 
 class MainActivity : ComponentActivity() {
@@ -124,13 +110,15 @@ fun DemoApp(modifier: Modifier = Modifier) {
         "Image Transform",
         "Canvas Basics",
         "Canvas Advanced",
+        "LabColor",
+        "LabPuzzle"
     )
     var expanded by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Jetpack Compose Animations") },
+                title = { Text("Image Processing") },
                 actions = {
                     IconButton(onClick = { expanded = true }) {
                         Icon(Icons.Filled.Menu, contentDescription = "Menu")
@@ -171,6 +159,8 @@ fun DemoApp(modifier: Modifier = Modifier) {
                 1 -> ImageTransformFunction()
                 2 -> CanvasBasicsFunction()
                 3 -> CanvasAdvancedFunction()
+                4 -> LabColor()
+                5 -> LabPuzzle()
             }
         }
     }
@@ -801,7 +791,326 @@ fun CanvasAdvancedFunction() {
     }
 }
 
+/* ============================================================
+   5. LabColor
+   ============================================================ */
+// Function to generate a random color with RGB values from 0 to 255
+fun generateRandomColor(): Color {
+    val random = java.util.Random()
+    val red = random.nextInt(256) // 0 to 255
+    val green = random.nextInt(256) // 0 to 255
+    val blue = random.nextInt(256) // 0 to 255
+    return Color(red / 255f, green / 255f, blue / 255f) // Convert to 0.0 - 1.0 range
+}
 
+@Composable
+fun LabColor() {
+    val context = LocalContext.current
+    val drawable = ContextCompat.getDrawable(context, R.drawable.compose_logo) as BitmapDrawable
+    val bitmap = drawable.bitmap
+
+    var targetColor by remember { mutableStateOf(generateRandomColor()) }
+    var red by remember { mutableFloatStateOf(0f) }
+    var green by remember { mutableFloatStateOf(0f) }
+    var blue by remember { mutableFloatStateOf(0f) }
+    var score by remember { mutableStateOf(100) }
+    var timeLeft by remember { mutableStateOf(30) }
+    var gameOver by remember { mutableStateOf(false) }
+
+    LaunchedEffect(timeLeft) {
+        while (timeLeft > 0) {
+            delay(1000L)
+            timeLeft--
+        }
+        gameOver = true
+    }
+
+    val selectedColor = Color(red / 255f, green / 255f, blue / 255f)
+
+    // Calculate similarity score
+    LaunchedEffect(red, green, blue) {
+        if (!gameOver) {
+            val diffR = abs(targetColor.red * 255 - red)
+            val diffG = abs(targetColor.green * 255 - green)
+            val diffB = abs(targetColor.blue * 255 - blue)
+            score = (100 - (diffR + diffG + diffB) / 3).toInt()
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Color Matching Game", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Display target color
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .background(targetColor)
+                .border(2.dp, Color.Black)
+        )
+        Text("Match this color!", fontWeight = FontWeight.Bold)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Display player's selected color
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .background(selectedColor)
+                .border(2.dp, Color.Black)
+        )
+        Text("Your Selected Color", fontWeight = FontWeight.Bold)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Sliders for RGB
+        SliderWithLabel("Red", red, { if (!gameOver) red = it }, Color.Red, gameOver)
+        SliderWithLabel("Green", green, { if (!gameOver) green = it }, Color.Green, gameOver)
+        SliderWithLabel("Blue", blue, { if (!gameOver) blue = it }, Color.Blue, gameOver)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Display Score
+        Text("Score: $score", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+
+        // Display Timer
+        Text(
+            text = if (gameOver) "Game Over!" else "Time Left: $timeLeft sec",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (gameOver) Color.Gray else Color.Red
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Reset Button
+        Button(onClick = {
+            targetColor = generateRandomColor()
+            red = 0f
+            green = 0f
+            blue = 0f
+            score = 100
+            timeLeft = 30
+            gameOver = false
+        }) {
+            Text("New Challenge")
+        }
+    }
+}
+
+
+// Custom Composable for Sliders
+@Composable
+fun SliderWithLabel(
+    label: String,
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    color: Color,
+    gameOver: Boolean
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text("$label: ${value.toInt()}", fontWeight = FontWeight.Bold, color = color)
+        Slider(
+            value = value,
+            onValueChange = { if (!gameOver) onValueChange(it) },
+            valueRange = 0f..255f,
+            modifier = Modifier.fillMaxWidth(0.8f),
+            enabled = !gameOver
+        )
+    }
+}
+
+/* ============================================================
+   LabPuzzle
+   ============================================================ */
+@Composable
+fun LabPuzzle() {
+    val context = LocalContext.current
+    val drawable = ContextCompat.getDrawable(context, R.drawable.compose_logo) as BitmapDrawable
+    val originalBitmap = drawable.bitmap
+
+    val gridSize = 3 // Adjustable grid size
+    var tileGrid by remember { mutableStateOf(shuffleTiles(originalBitmap, gridSize)) }
+    val originalTiles = remember { mutableStateOf(originalTileSet(originalBitmap, gridSize)) }
+    var moves by remember { mutableStateOf(0) }
+    var timeLeft by remember { mutableStateOf(60) }
+    var gameOver by remember { mutableStateOf(false) }
+
+    LaunchedEffect(timeLeft) {
+        while (timeLeft > 0 && !gameOver) {
+            delay(10000L)
+            timeLeft--
+        }
+        if (timeLeft == 0) {
+            gameOver = true
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Image Puzzle Game", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Puzzle Grid
+        PuzzleGrid(tileGrid, gridSize, onSwap = { i ->
+            if (!gameOver) {
+                tileGrid = swapTiles(tileGrid, i)
+                moves++
+                gameOver = isSolved(tileGrid, originalTiles.value)
+            }
+        })
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Display Timer
+        Text(
+            text = if (gameOver) "Game Over!" else "Time Left: $timeLeft sec",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (gameOver) Color.Gray else Color.Red
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Restart Button
+        Button(onClick = {
+            tileGrid = shuffleTiles(originalBitmap, gridSize)
+            moves = 0
+            timeLeft = 60
+            gameOver = false
+        }) {
+            Text("New Puzzle")
+        }
+    }
+}
+
+// Function to create the original tile order with one empty space
+fun originalTileSet(bitmap: Bitmap, gridSize: Int): List<Bitmap> {
+    val tiles = splitImage(bitmap, gridSize).toMutableList()
+    tiles[tiles.lastIndex] = createEmptyTile(tiles[0].width, tiles[0].height) // Use transparent tile
+    return tiles
+}
+
+// Function to create a transparent empty tile
+fun createEmptyTile(width: Int, height: Int): Bitmap {
+    return Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).apply {
+        eraseColor(android.graphics.Color.RED) // Makes the tile empty
+    }
+}
+
+// Function to split an image into grid tiles
+fun splitImage(bitmap: Bitmap, gridSize: Int): List<Bitmap> {
+    val tileWidth = bitmap.width / gridSize
+    val tileHeight = bitmap.height / gridSize
+    val tiles = mutableListOf<Bitmap>()
+
+    for (y in 0 until gridSize) {
+        for (x in 0 until gridSize) {
+            val tile = Bitmap.createBitmap(bitmap, x * tileWidth, y * tileHeight, tileWidth, tileHeight)
+            tiles.add(tile)
+        }
+    }
+    return tiles
+}
+
+// Function to shuffle tiles while ensuring solvability
+fun shuffleTiles(bitmap: Bitmap, gridSize: Int): List<Bitmap> {
+    val tiles = originalTileSet(bitmap, gridSize).toMutableList()
+    val gridSizeSquared = gridSize * gridSize
+    var emptyIndex = tiles.indexOfFirst { it.sameAs(createEmptyTile(it.width, it.height)) }
+
+    if (emptyIndex == -1) {
+        Log.e("PuzzleGame", "Error: Empty tile not found, setting last tile as empty.")
+        emptyIndex = tiles.lastIndex
+        tiles[emptyIndex] = createEmptyTile(tiles[0].width, tiles[0].height)
+    }
+
+    val moves = listOf(-1, 1, -gridSize, gridSize) // Left, Right, Up, Down
+
+    Log.d("PuzzleGame", "Starting tile shuffle, emptyIndex = $emptyIndex")
+
+    repeat(100) { // Shuffle using 100 valid moves
+        val validMoves = moves.filter { move ->
+            val newIndex = emptyIndex + move
+            newIndex in 0 until gridSizeSquared &&
+                    !(move == -1 && emptyIndex % gridSize == 0) && // Prevent left wrap
+                    !(move == 1 && emptyIndex % gridSize == gridSize - 1) // Prevent right wrap
+        }
+
+        if (validMoves.isNotEmpty()) {
+            val swapIndex = emptyIndex + validMoves.random()
+            if (swapIndex in 0 until gridSizeSquared) { // Final check before swapping
+                Log.d("PuzzleGame", "Swapping empty tile at $emptyIndex with tile at $swapIndex")
+                tiles[emptyIndex] = tiles[swapIndex]
+                tiles[swapIndex] = createEmptyTile(tiles[0].width, tiles[0].height)
+                emptyIndex = swapIndex
+            } else {
+                Log.e("PuzzleGame", "Invalid swap detected: emptyIndex=$emptyIndex, swapIndex=$swapIndex")
+            }
+        }
+    }
+
+    Log.d("PuzzleGame", "Shuffling complete, final emptyIndex = $emptyIndex")
+    return tiles
+}
+
+// Function to check if tiles are in the correct order
+fun isSolved(tiles: List<Bitmap>, originalTiles: List<Bitmap>): Boolean {
+    return tiles == originalTiles
+}
+
+// Function to swap only adjacent tiles with the empty space
+fun swapTiles(tiles: List<Bitmap>, index: Int): List<Bitmap> {
+    val emptyIndex = tiles.indexOfFirst { it.sameAs(createEmptyTile(it.width, it.height)) }
+    val gridSize = Math.sqrt(tiles.size.toDouble()).toInt()
+
+    val validMoves = listOf(emptyIndex - 1, emptyIndex + 1, emptyIndex - gridSize, emptyIndex + gridSize)
+    if (index !in validMoves) return tiles
+
+    Log.d("PuzzleGame", "Swapping tiles: empty at $emptyIndex <-> tile at $index")
+    val newTiles = tiles.toMutableList()
+    newTiles[emptyIndex] = newTiles[index]
+    newTiles[index] = createEmptyTile(newTiles[0].width, newTiles[0].height)
+    return newTiles
+}
+
+// Puzzle Grid UI
+@Composable
+fun PuzzleGrid(tiles: List<Bitmap>, gridSize: Int, onSwap: (Int) -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        for (row in 0 until gridSize) {
+            Row {
+                for (col in 0 until gridSize) {
+                    val index = row * gridSize + col
+                    val tile = tiles[index]
+                    Image(
+                        bitmap = tile.asImageBitmap(),
+                        contentDescription = "Tile $index",
+                        modifier = Modifier
+                            .size(100.dp)
+                            .border(1.dp, Color.Black)
+                            .clickable { onSwap(index) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+/* ============================================================
+   Preview
+   ============================================================ */
 
 @Composable
 @Preview(showSystemUi = true, showBackground = true)

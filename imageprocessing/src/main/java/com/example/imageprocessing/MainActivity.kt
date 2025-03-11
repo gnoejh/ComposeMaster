@@ -414,7 +414,7 @@ fun CroppingExample() {
             painter = painterResource(id = R.drawable.compose_logo),
             contentDescription = "Compose Logo Circle Crop",
             modifier = Modifier
-                .size(50.dp)
+                .size(100.dp)
                 .clip(androidx.compose.foundation.shape.CircleShape) // Circle crop
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -520,7 +520,7 @@ fun BitmapExample() {
     Spacer(modifier = Modifier.height(16.dp))
 
     // Example 2: Scaling the Bitmap
-    val scaledBitmap: Bitmap = scaleBitmap(originalBitmap, 0.5f, 0.5f)
+    val scaledBitmap: Bitmap = scaleBitmap(originalBitmap, 0.5f, 0.9f)
     Spacer(modifier = Modifier.height(8.dp))
     Text(text = "Scaled Bitmap")
     Image(
@@ -631,7 +631,7 @@ fun CanvasBasicsFunction() {
         Text(text = "4. Drawing Order", fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
         Canvas(modifier = Modifier.size(200.dp)) {
-            drawCircle(color = Color.Gray, radius = 50.dp.toPx())
+            drawCircle(color = Color.Gray, radius = 100.dp.toPx())
             drawRect(
                 color = Color.Red,
                 size = Size(100.dp.toPx(), 100.dp.toPx()),
@@ -732,7 +732,7 @@ fun CanvasAdvancedFunction() {
         Spacer(modifier = Modifier.height(8.dp))
         Canvas(modifier = Modifier.size(200.dp)) {
             drawContext.canvas.nativeCanvas.apply {
-                drawText("Hello Canvas!", 50.dp.toPx(), 100.dp.toPx(), Paint().apply {
+                drawText("Hello Canvas!", 20.dp.toPx(), 100.dp.toPx(), Paint().apply {
                     color = android.graphics.Color.CYAN
                     textSize = 40.sp.toPx()
                 })
@@ -812,7 +812,7 @@ fun LabColor() {
     var green by remember { mutableFloatStateOf(0f) }
     var blue by remember { mutableFloatStateOf(0f) }
     var score by remember { mutableStateOf(100) }
-    var timeLeft by remember { mutableStateOf(30) }
+    var timeLeft by remember { mutableStateOf(60) }
     var gameOver by remember { mutableStateOf(false) }
 
     LaunchedEffect(timeLeft) {

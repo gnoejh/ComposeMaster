@@ -199,10 +199,8 @@ fun ImageDisplayFunction() {
 
         // 2. Displaying an Image from Network (using Coil)
         Text(text = "2. From Network (Coil):", fontWeight = FontWeight.Bold)
-        NetworkImageExample(
-            "data:image/jpeg;base64,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",
-            "Compose Logo from Network"
-        )
+//
+        NetworkImageExample("https://picsum.photos/200", "Test Image from Network")
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -234,13 +232,12 @@ fun DrawableImageExample(drawableId: Int, description: String) {
 
 @Composable
 fun NetworkImageExample(imageUrl: String, description: String) {
-    val context = LocalContext.current
+    val context = LocalContext.current // Get the context
 
     val painter = rememberAsyncImagePainter(
         model = ImageRequest.Builder(context)
             .data(imageUrl)
-//            .size(Size.ORIGINAL) // Use Size.ORIGINAL here.
-//            .allowHardware(false)
+            .crossfade(true)
             .build()
     )
 
@@ -253,6 +250,7 @@ fun NetworkImageExample(imageUrl: String, description: String) {
             error = painterResource(R.drawable.compose_logo),
             contentScale = ContentScale.Fit
         )
+
         Text(text = description)
     }
 }
@@ -416,7 +414,7 @@ fun CroppingExample() {
             painter = painterResource(id = R.drawable.compose_logo),
             contentDescription = "Compose Logo Circle Crop",
             modifier = Modifier
-                .size(100.dp)
+                .size(50.dp)
                 .clip(androidx.compose.foundation.shape.CircleShape) // Circle crop
         )
         Spacer(modifier = Modifier.height(8.dp))

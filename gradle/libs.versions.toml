@@ -1,6 +1,7 @@
 [versions]
 agp = "8.2.2" # Use a stable AGP version
 coilCompose = "2.7.0"
+coilComposeVersion = "2.2.2"
 kotlin = "2.1.0" # Use a stable Kotlin version
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -22,7 +23,9 @@ androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", versi
 androidx-media3-transformer = { module = "androidx.media3:media3-transformer", version.ref = "media3Exoplayer" }
 androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3Exoplayer" }
 androidx-ui-viewbinding = { module = "androidx.compose.ui:ui-viewbinding", version.ref = "uiViewbinding" }
+coil = { module = "io.coil-kt:coil", version.ref = "coilComposeVersion" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+coil-compose-v222 = { module = "io.coil-kt:coil-compose", version.ref = "coilComposeVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

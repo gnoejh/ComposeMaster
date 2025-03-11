@@ -56,6 +56,9 @@ dependencies {
     implementation(libs.androidx.ui.viewbinding)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.media3.effect)
+    implementation(libs.coil.compose.v222)
+    implementation(libs.coil)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -1,38 +1,29 @@
 package com.example.videoprocessing
 
-import android.graphics.Bitmap
-import android.graphics.Matrix
-import android.graphics.Paint
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
+//import androidx.camera.core.Preview
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
+import androidx.camera.core.CameraSelector
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,46 +31,23 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.graphics.drawscope.translate
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.set
 import androidx.core.net.toUri
@@ -94,11 +62,7 @@ import androidx.media3.effect.RgbFilter
 import androidx.media3.effect.SingleColorLut
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.google.common.util.concurrent.ListenableFuture
 
 
 class MainActivity : ComponentActivity() {
@@ -121,6 +85,7 @@ fun DemoApp(modifier: Modifier = Modifier) {
     val tabs = listOf(
         "Video Playback",
         "Video Effects",
+        "Camera Effects",
     )
     var expanded by remember { mutableStateOf(false) }
 
@@ -166,6 +131,7 @@ fun DemoApp(modifier: Modifier = Modifier) {
             when (selectedTab) {
                 0 -> VideoPlaybackFunction()
                 1 -> VideoEffectsFunction()
+                2 -> CameraEffectsFunction()
             }
         }
     }
@@ -202,7 +168,7 @@ fun VideoPlaybackFunction() {
             ExoPlayer.Builder(context).build().apply {
                 setMediaItem(MediaItem.fromUri(videoUri))
                 prepare()
-                playWhenReady = true
+                playWhenReady = false
             }
         }
 
@@ -225,6 +191,7 @@ fun VideoPlaybackFunction() {
         )
     }
 }
+
 
 /* ============================================================
    1. VideoEffectsFunction
@@ -276,7 +243,7 @@ fun VideoEffectsFunction() {
         ExoPlayer.Builder(context).build().apply {
             setMediaItem(MediaItem.fromUri(videoUri))
             prepare()
-            playWhenReady = true
+            playWhenReady = false
             setVideoEffects(listOfNotNull(selectedEffect))
         }
     }
@@ -290,6 +257,7 @@ fun VideoEffectsFunction() {
                     player.pause()
                     player.seekTo(0)
                 }
+
                 else -> Unit
             }
         }
@@ -301,7 +269,7 @@ fun VideoEffectsFunction() {
         }
     }
 
-    LaunchedEffect (selectedEffect) {
+    LaunchedEffect(selectedEffect) {
         player.setVideoEffects(listOfNotNull(selectedEffect))
     }
 
@@ -352,23 +320,193 @@ fun VideoEffectsFunction() {
    7. CameraEffectsFunction
    ============================================================ */
 
+//@androidx.annotation.OptIn(UnstableApi::class)
+//@Composable
+//fun CameraEffectsFunction() {
+//    val context = LocalContext.current
+//    val lifecycleOwner = LocalLifecycleOwner.current
+//    var selectedEffect by remember { mutableStateOf<GlEffect?>(null) }
+//
+//    val effects = listOf(
+//        "No Effect" to null,
+//        "Inverted" to shaderInverted(),
+//        "Grayscale LUT" to shaderCustom()
+//    )
+//
+//    val videoUri = remember {
+//        "android.resource://${context.packageName}/${com.example.videoprocessing.R.raw.video_test}".toUri()
+//    }
+//
+//    val player = remember(context) {
+//        ExoPlayer.Builder(context).build().apply {
+//            setMediaItem(MediaItem.fromUri(videoUri))
+//            prepare()
+//            playWhenReady = false
+//            setVideoEffects(listOfNotNull(selectedEffect))
+//        }
+//    }
+//
+//    DisposableEffect(player, lifecycleOwner) {
+//        val lifecycleObserver = LifecycleEventObserver { _, event ->
+//            when (event) {
+//                Lifecycle.Event.ON_RESUME -> player.play()
+//                Lifecycle.Event.ON_PAUSE -> player.pause()
+//                Lifecycle.Event.ON_STOP -> {
+//                    player.pause()
+//                    player.seekTo(0)
+//                }
+//
+//                else -> Unit
+//            }
+//        }
+//        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+//
+//        onDispose {
+//            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
+//            player.release()
+//        }
+//    }
+//
+//    LaunchedEffect(selectedEffect) {
+//        player.setVideoEffects(listOfNotNull(selectedEffect))
+//    }
+//
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .padding(16.dp),
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        Text(
+//            text = "Advanced Video Effects",
+//            style = MaterialTheme.typography.headlineMedium,
+//            fontWeight = FontWeight.Bold
+//        )
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        AndroidView(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .aspectRatio(9f / 12f),
+//            factory = { ctx ->
+//                PlayerView(ctx).apply {
+//                    this.player = player
+//                    useController = true
+//                }
+//            }
+//        )
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        LazyColumn {
+//            items(effects.size) { index ->
+//                val (effectName, effect) = effects[index]
+//                Button(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(4.dp),
+//                    onClick = { selectedEffect = effect as GlEffect? }
+//                ) {
+//                    Text(effectName)
+//                }
+//            }
+//        }
+//    }
+//}
+
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun CameraEffectsFunction() {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var selectedEffect by remember { mutableStateOf<GlEffect?>(null) }
 
+    val effects = listOf(
+        "No Effect" to null,
+        "Inverted" to shaderInverted(),
+        "Grayscale LUT" to shaderCustom()
+    )
+
+    val cameraProviderFuture: ListenableFuture<ProcessCameraProvider> = remember {
+        ProcessCameraProvider.getInstance(context)
+    }
+
+    val previewView = remember {
+        PreviewView(context).apply {
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+        }
+    }
+
+    DisposableEffect(cameraProviderFuture) {
+        val cameraProvider = cameraProviderFuture.get()
+
+
+        val preview = androidx.camera.core.Preview.Builder().build().also {
+            it.setSurfaceProvider(previewView.surfaceProvider)
+        }
+
+        val cameraSelector = CameraSelector.Builder()
+            .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+            .build()
+
+        try {
+            cameraProvider.unbindAll()
+            cameraProvider.bindToLifecycle(
+                lifecycleOwner,
+                cameraSelector,
+                preview
+            )
+        } catch (exc: Exception) {
+            exc.printStackTrace()
+        }
+
+        onDispose {
+            cameraProvider.unbindAll()
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Camera Effects",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        AndroidView(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(9f / 12f),
+            factory = { previewView }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        LazyColumn {
+            items(effects.size) { index ->
+                val (effectName, effect) = effects[index]
+                Button(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(4.dp),
+                    onClick = { selectedEffect = effect as GlEffect? }
+                ) {
+                    Text(effectName)
+                }
+            }
+        }
+    }
 }
 
+
 /* ============================================================
-   8. AudioPlaybackFunction
+   8. Preview
    ============================================================ */
-
-/* ============================================================
-   9. AudioEffectsFunction
-   ============================================================ */
-
-/* ============================================================
-10. AudioRecordingFunction
- */
-
 
 
 @Composable

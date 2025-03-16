@@ -1,5 +1,6 @@
 [versions]
 agp = "8.2.2" # Use a stable AGP version
+cameraCore = "1.4.1"
 coilCompose = "2.7.0"
 coilComposeVersion = "2.7.0"
 kotlin = "2.1.0" # Use a stable Kotlin version
@@ -16,6 +17,10 @@ media3Exoplayer = "1.5.1"
 uiViewbinding = "1.7.8"
 
 [libraries]
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCore" }
+androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "cameraCore" }
+androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraCore" }
+androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraCore" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleRuntimeKtx" }
 androidx-media3-effect = { module = "androidx.media3:media3-effect", version.ref = "media3Exoplayer" }

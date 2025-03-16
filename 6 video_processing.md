@@ -1,104 +1,109 @@
-# **Video Processing with Jetpack Compose**
+# **Video and Camera Processing with Jetpack Compose**
 
-### **1. Video Playback with ExoPlayer**
-To integrate video playback, use ExoPlayer inside `AndroidView`.
-
-```kotlin
-@Composable
-fun VideoPlayer(videoUri: Uri) {
-    val context = LocalContext.current
-    val player = remember {
-        ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(videoUri))
-            prepare()
-            playWhenReady = true
-        }
-    }
-
-    AndroidView(
-        modifier = Modifier.fillMaxWidth(),
-        factory = { PlayerView(it).apply { this.player = player } }
-    )
-}
-```
+This guide covers how to integrate video and camera streams in Jetpack Compose, apply various effects and transformations, and understand the types of processing available.
 
 ---
+## **1. Video Playback with ExoPlayer**
 
-### **2. Video Filters and Effects**
-#### **Applying Video Effects in ExoPlayer**
+ExoPlayer is used for playing video files within Jetpack Compose.
+
+### **Implementation**
+```kotlin
+val context = LocalContext.current
+val player = remember {
+    ExoPlayer.Builder(context).build().apply {
+        setMediaItem(MediaItem.fromUri(videoUri))
+        prepare()
+        playWhenReady = true
+    }
+}
+
+AndroidView(
+    modifier = Modifier.fillMaxWidth(),
+    factory = { PlayerView(it).apply { this.player = player } }
+)
+```
+
+### **Video Effects in ExoPlayer**
 ```kotlin
 LaunchedEffect(Unit) {
     player.setVideoEffects(listOfNotNull(RgbFilter.createGrayscaleFilter()))
 }
 ```
 
-#### **Dynamic Video Effect Selection**
-```kotlin
-val effects = listOf(
-    "No Effect" to null,
-    "Inverted" to RgbFilter.createInvertedFilter(),
-    "Grayscale" to RgbFilter.createGrayscaleFilter()
-)
+---
+## **2. Video Effects and Processing**
 
-LazyColumn {
-    items(effects) { (name, effect) ->
-        Button(onClick = { player.setVideoEffects(listOfNotNull(effect)) }) {
-            Text(name)
-        }
+### **Common Video Effects**
+| Effect Name   | Implementation Method |
+|--------------|----------------------|
+| Invert Colors | `RgbFilter.createInvertedFilter()` |
+| Grayscale    | `RgbFilter.createGrayscaleFilter()` |
+| Sepia Tone   | `SingleColorLut.createFromBitmap(grayscaleBitmap)` |
+| Contrast Adjustment | `CustomContrastFilter()` |
+| Brightness Adjustment | `CustomBrightnessFilter()` |
+
+### **Geometric Transformations**
+| Transformation | Implementation Method |
+|---------------|----------------------|
+| Cropping, Scaling, Rotating | `player.videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT` |
+| Slow Motion / Fast Motion | Adjust playback speed in `ExoPlayer` |
+| Perspective Correction | `CustomPerspectiveTransform()` |
+
+---
+## **3. Camera Processing with CameraX**
+
+CameraX provides an easy way to integrate and manipulate real-time camera feeds.
+
+### **Implementation**
+```kotlin
+val previewView = remember {
+    PreviewView(context).apply {
+        implementationMode = PreviewView.ImplementationMode.COMPATIBLE
     }
 }
 ```
+```kotlin
+val preview = androidx.camera.core.Preview.Builder().build().also {
+    it.setSurfaceProvider(previewView.surfaceProvider)
+}
+```
+
+### **Real-Time Camera Effects**
+| Effect Name  | Implementation Method |
+|-------------|----------------------|
+| No Effect   | Default CameraX Preview |
+| Inverted    | `shaderInverted()` |
+| Grayscale LUT | `shaderCustom()` |
+| Edge Detection | `CustomEdgeDetectionShader()` |
+| Sepia Filter | `CustomSepiaToneShader()` |
+| Background Blur | `CustomBackgroundBlur()` |
+| Night Mode | `CustomLowLightEnhancement()` |
+| HDR Enhancement | `CustomHDREffect()` |
 
 ---
-### **3. Advanced Video Processing with ExoPlayer and Shaders**
-#### **Color Adjustments**
-- **Invert Colors**
-  ```kotlin
-  RgbFilter.createInvertedFilter()
-  ```
-- **Grayscale Effect**
-  ```kotlin
-  RgbFilter.createGrayscaleFilter()
-  ```
-- **Sepia Tone (Using Custom LUT)**
-  ```kotlin
-  SingleColorLut.createFromBitmap(grayscaleBitmap)
-  ```
+## **4. Overview of Video & Camera Processing Techniques**
 
-#### **Geometric Transformations**
-- **Cropping, Scaling, Rotating**
-  ```kotlin
-  player.videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT
-  ```
+### **Feature Comparison Table**
+| Feature | Technology | Implementation Method | Example Code |
+|---------|------------|----------------------|--------------|
+| **Video Playback** | ExoPlayer + AndroidView | `ExoPlayer.Builder(context).build()` | `PlayerView(it).apply { this.player = player }` |
+| **Video Effects** | ExoPlayer | `player.setVideoEffects(listOfNotNull(effect))` | `player.setVideoEffects(listOfNotNull(RgbFilter.createGrayscaleFilter()))` |
+| **Camera Stream** | CameraX + PreviewView | `Preview.Builder().build().also { it.setSurfaceProvider(previewView.surfaceProvider) }` | `preview.setSurfaceProvider(previewView.surfaceProvider)` |
+| **Camera Effects** | CameraX + OpenGL Shaders | `shaderInverted()`, `shaderCustom()` | `player.setVideoEffects(listOfNotNull(shaderInverted()))` |
 
-#### **Motion Effects**
-- **Slow Motion / Fast Motion**
-- **Frame Interpolation (AI-powered smooth motion)**
-
----
-
-### **4. AR & AI Video Processing**
-- **Face Tracking & Filters**
-- **AI-Powered Background Removal (Green Screen)**
-- **Depth Estimation for 3D Effects**
-
----
-
-## **How to Implement These Effects?**
-1. **Use `GlEffect` and `Effect` in ExoPlayer**
-    - Apply LUTs, color adjustments, and shader transformations.
-
-2. **Apply `Canvas` for custom drawing**
-    - Modify and blend images.
-
-3. **Use Machine Learning (MLKit, TensorFlow Lite, MediaPipe)**
-    - Implement AI-based filters, object tracking, and video analysis.
+### **How to Implement These Effects?**
+| Method | Description |
+|--------|------------|
+| `GlEffect` and `Effect` in ExoPlayer | Apply LUTs, color adjustments, and shader transformations |
+| `Canvas` for custom drawing | Modify and blend images |
+| OpenGL Shaders | Real-time transformations on camera/video |
 
 ---
 
-## **Conclusion: What’s Possible in Jetpack Compose?**
-✅ **Basic Effects** → Color filters, LUTs, simple animations  
-✅ **Advanced Shaders** → Custom video transformations, edge detection, AR effects  
-✅ **AI-Powered Processing** → Face tracking, object detection, deep learning integration
+## **5. Summary**
 
-🚀 **Compose + ExoPlayer + AI + Shaders = Limitless Video & Image Processing!**
+This guide demonstrates how to use ExoPlayer for video playback, CameraX for live camera feeds, and how to apply various video and camera effects. By using Jetpack Compose’s integration with ExoPlayer and CameraX, developers can build rich multimedia applications with advanced video processing features.
+
+🚀 **Jetpack Compose + ExoPlayer + CameraX = Powerful Multimedia Processing!**
+

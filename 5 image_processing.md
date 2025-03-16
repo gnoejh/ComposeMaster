@@ -80,6 +80,15 @@ Canvas(modifier = Modifier.fillMaxSize()) {
 }
 ```
 
+#### **Applying Color Filters**
+```kotlin
+Image(
+    painter = painterResource(id = R.drawable.sample_image),
+    contentDescription = "Filtered Image",
+    modifier = Modifier.colorFilter(ColorFilter.tint(Color.Magenta))
+)
+```
+
 ---
 
 ## **II. Custom Graphics and Drawing with Canvas**
@@ -109,6 +118,17 @@ Canvas(modifier = Modifier.size(200.dp)) {
 }
 ```
 
+#### **Clipping Paths**
+```kotlin
+Canvas(modifier = Modifier.size(200.dp)) {
+    clipPath(Path().apply {
+        addOval(Rect(Offset.Zero, size))
+    }) {
+        drawRect(Color.Green)
+    }
+}
+```
+
 ---
 
 ### **4. Advanced Canvas Techniques**
@@ -130,4 +150,24 @@ rotate(45f) {
 }
 ```
 
----
+#### **Blur Effects**
+```kotlin
+Canvas(modifier = Modifier.size(200.dp)) {
+    drawRoundRect(
+        color = Color.Black,
+        size = size,
+        cornerRadius = CornerRadius(16.dp.toPx())
+    )
+}
+```
+
+#### **Shadow Effects**
+```kotlin
+Canvas(modifier = Modifier.size(200.dp)) {
+    drawRect(
+        color = Color.Gray,
+        size = size,
+        shadow = Shadow(color = Color.Black, blurRadius = 8f)
+    )
+}
+```

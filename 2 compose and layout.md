@@ -1,34 +1,40 @@
-# Week 2: Compose and Layout Basics
+# **Compose and Layout Basics**
 
-## Slide 1: What is Jetpack Compose?
+This guide introduces Jetpack Compose, its benefits, layout structures, and essential modifiers to help you build dynamic UI components.
+
+---
+## **1. What is Jetpack Compose?**
 
 - Modern UI toolkit for Android
-- Declarative UI paradigm
-- Built with Kotlin
-- Replaces XML layouts
-- Released in 2021
+- Uses **Declarative UI paradigm**
+- Built entirely with **Kotlin**
+- Replaces traditional **XML layouts**
+- First released in **2021**
 
-## Slide 2: Why Compose?
+---
+## **2. Why Choose Jetpack Compose?**
 
-- Less boilerplate code
-- More intuitive APIs
-- Better tooling support
-- Improved performance
-- Material Design 3 ready
-- Interoperable with Views
+- Reduces **boilerplate code**
+- Provides **intuitive APIs**
+- Offers **better tooling support**
+- Improves **performance**
+- Fully supports **Material Design 3**
+- **Interoperable** with existing **View-based UI**
 
-## Slide 3: Declarative vs Imperative UI
-
+---
+## **3. Declarative vs. Imperative UI**
 
 | Declarative (Compose) | Imperative (XML)         |
 | --------------------- | ------------------------ |
 | Describe what to show | Describe how to update   |
-| State-driven          | Manual updates           |
-| Automatic UI updates  | Manual view manipulation |
-| Less code             | More boilerplate         |
+| **State-driven** UI updates | **Manual** updates required |
+| **Automatic** UI recomposition | Requires **explicit view manipulation** |
+| **Less** code | **More** boilerplate |
 
-## Slide 4: Setting Up Compose
+---
+## **4. Setting Up Jetpack Compose**
 
+### **Gradle Configuration**
 ```kotlin
 // build.gradle.kts
 android {
@@ -47,27 +53,33 @@ dependencies {
 }
 ```
 
-## Slides 5: First Composable
+---
+## **5. Writing Your First Composable**
 
 ```kotlin
 @Composable
 fun Greeting(name: String) {
-Text("Hello $name!")
+    Text("Hello $name!")
 }
 
 @Preview
 @Composable
 fun GreetingPreview() {
-Greeting("Android")
+    Greeting("Android")
 }
 ```
-## Slide 6: Core Layout Composables
-- Column: Vertical arrangement
-- Row: Horizontal arrangement
-- Box: Stack-based layout
-- Each can contain multiple child composables
 
-## Slide 7: Column Example
+---
+## **6. Core Layout Composables**
+
+| Composable | Description |
+|------------|-------------|
+| **Column** | Arranges child components **vertically** |
+| **Row** | Arranges child components **horizontally** |
+| **Box** | Overlays child components **stacked** on top of each other |
+
+---
+## **7. Column Example**
 
 ```kotlin
 @Composable
@@ -80,7 +92,8 @@ fun VerticalLayout() {
 }
 ```
 
-## Slide 8: Row Example
+---
+## **8. Row Example**
 
 ```kotlin
 @Composable
@@ -93,7 +106,8 @@ fun HorizontalLayout() {
 }
 ```
 
-## Slide 9: Box Example
+---
+## **9. Box Example**
 
 ```kotlin
 @Composable
@@ -105,7 +119,9 @@ fun OverlayLayout() {
 }
 ```
 
-## Slide 10 Basic Modifiers
+---
+## **10. Basic Modifiers**
+
 ```kotlin
 @Composable
 fun ModifierExample() {
@@ -119,29 +135,43 @@ fun ModifierExample() {
 }
 ```
 
-## Slide 11:Size Modifiers
-- width() / height()
-- size()
-- fillMaxWidth()
-- fillMaxHeight()
-- fillMaxSize()
-- wrapContentSize()
+---
+## **11. Size Modifiers**
 
-## Slide 12: Spacing Modifiers
-- padding()
-- offset()
-- spacedBy()
-- weight()
-- aspectRatio()
+| Modifier | Description |
+|----------|------------|
+| `width()` / `height()` | Set explicit width or height |
+| `size()` | Define both width & height together |
+| `fillMaxWidth()` | Expand to full width |
+| `fillMaxHeight()` | Expand to full height |
+| `fillMaxSize()` | Expand to full screen size |
+| `wrapContentSize()` | Adapt to content size |
 
-## Slide 13: Interactive Modifiers
-- clickable()
-- draggable()
-- focusable()
-- pointerInput()
-- scrollable()
+---
+## **12. Spacing Modifiers**
 
-## Slide 14: Alignment Modifiers
+| Modifier | Description |
+|----------|------------|
+| `padding()` | Adds space **inside** the component |
+| `offset()` | Moves a component **without affecting layout** |
+| `spacedBy()` | Adds spacing **between elements** in `Column`/`Row` |
+| `weight()` | Distributes space **proportionally** |
+| `aspectRatio()` | Defines a **fixed width-to-height ratio** |
+
+---
+## **13. Interactive Modifiers**
+
+| Modifier | Description |
+|----------|------------|
+| `clickable()` | Makes a component **clickable** |
+| `draggable()` | Enables **drag interactions** |
+| `focusable()` | Allows keyboard **focus** handling |
+| `pointerInput()` | Custom **gesture recognition** |
+| `scrollable()` | Enables **scrolling** interactions |
+
+---
+## **14. Alignment Modifiers**
+
 ```kotlin
 Column(
     horizontalAlignment = Alignment.CenterHorizontally
@@ -156,7 +186,9 @@ Row(
 }
 ```
 
-## Slide 15: Arrangement Modifiers
+---
+## **15. Arrangement Modifiers**
+
 ```kotlin
 Column(
     verticalArrangement = Arrangement.SpaceEvenly
@@ -167,13 +199,16 @@ Column(
 }
 ```
 
-## Slide 16: Recomposition
-- Automatic UI updates
-- State-based triggers
-- Smart update system
-- Only affected components
+---
+## **16. Recomposition**
 
-## Slide 17: State Management
+- **Automatic UI updates** based on state changes
+- **Triggers on state modifications**
+- **Optimized updates** to only affected components
+
+---
+## **17. State Management**
+
 ```kotlin
 @Composable
 fun Counter() {
@@ -184,21 +219,26 @@ fun Counter() {
 }
 ```
 
-## Slide 18: Common Pitfalls
-- Modifiers order matters
-- Recomposition side effects
-- Unnecessary state
-- Missing remember
-- Layout nesting depth
+---
+## **18. Common Pitfalls**
 
-## Slide 19: Best Practices
-- Keep composables small
-- Use meaningful names
-- Follow composition local pattern
-- Hoist state when needed
-- Use proper modifier order
+- **Modifier order matters** (e.g., `padding()` before `background()` affects layout)
+- **Avoid unnecessary recompositions**
+- **Use `remember` to retain state**
+- **Keep UI nesting shallow** to avoid performance issues
 
-## Slide 20: Practice Exercise
+---
+## **19. Best Practices**
+
+- Keep composables **small and reusable**
+- Use **meaningful function names**
+- Apply **state hoisting** where necessary
+- Follow **composition local pattern**
+- Optimize **modifier order** for clarity and performance
+
+---
+## **20. Practice Exercise**
+
 ```kotlin
 @Composable
 fun ProfileCard() {
@@ -224,3 +264,7 @@ fun ProfileCard() {
     }
 }
 ```
+
+---
+🚀 **Mastering Compose layouts makes UI design faster, cleaner, and more efficient!**
+

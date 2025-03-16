@@ -1,87 +1,124 @@
-# Week 1: Preliminary Setup
+# Preliminary Setup for Android Development**
 
-Welcome to the first week of your Android development journey! This week, we'll lay the groundwork by setting up our development environment and getting acquainted with the fundamental tools and concepts we'll be using.
+Welcome to your Android development journey! In this section, we will set up the development environment and explore the fundamental tools required to build Android applications using **Jetpack Compose** and **Kotlin**.
 
-## Topics
+---
 
-### Setting up Android Studio
+## **1. Development Environment Setup**
 
-Android Studio is the official Integrated Development Environment (IDE) for Android app development. It provides a comprehensive suite of tools for coding, debugging, testing, and building Android applications.
+To develop Android apps efficiently, you need to install the necessary tools and configure your development environment.
 
-#### Installation
+### **1.1 Installing Android Studio**
 
-1. **Download:** Head over to the official Android Studio website ([https://developer.android.com/studio/install.html](https://developer.android.com/studio/install.html)) and download the latest stable version for your operating system.
-2. **Installation:** Follow the installation instructions provided on the website. The process is generally straightforward, with the installer guiding you through each step.
-3. **First Launch:** Upon launching Android Studio for the first time, you'll be prompted to configure some initial settings. You can typically go with the standard installation options.
+Android Studio is the official **Integrated Development Environment (IDE)** for Android app development. It provides tools for coding, debugging, testing, and building Android applications.
 
-#### SDK Setup
+#### **Installation Steps**
 
-The Android Software Development Kit (SDK) is a collection of tools, libraries, and documentation that are essential for building Android apps.
 
-1. **SDK Manager:** Android Studio comes with an SDK Manager that allows you to download and manage different SDK components. You can access it through **Tools > SDK Manager**.
-2. **Platform Selection:** In the SDK Manager, you'll find a list of Android platform versions. Select the platforms you want to target. It's recommended to install at least one of the latest stable versions.
-3. **SDK Tools:** In the "SDK Tools" tab, make sure to install the following:
-   * **Android SDK Build-Tools:** These are essential for building your app.
-   * **Android Emulator:** This allows you to run and test your app on virtual devices.
-   * **Android SDK Platform-Tools:** These provide tools like ADB (Android Debug Bridge) for interacting with devices.
-4. **Google Play services:** If you plan to use Google services in your app, like maps, you will need to install this.
+| Step                 | Description                                                                                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. Download**      | Visit the[Android Studio website](https://developer.android.com/studio/install.html)and download the latest stable version for your OS.     |
+| **2. Install**       | Run the installer and follow the setup instructions. The process is guided and straightforward.                                             |
+| **3. Initial Setup** | When you launch Android Studio for the first time, configure settings as prompted. The standard installation is recommended for most users. |
 
-#### Emulator Configuration
+---
 
-The Android Emulator lets you run your app on a virtual device, simulating various hardware configurations and Android versions.
+### **1.2 Android SDK Configuration**
 
-1. **AVD Manager:** Access the Android Virtual Device (AVD) Manager through **Tools > AVD Manager**.
-2. **Create Virtual Device:** Click on "+ Create Virtual Device" to start creating a new virtual device.
-3. **Hardware Profile:** Choose a hardware profile that matches the type of device you want to emulate (e.g., Pixel, Nexus).
-4. **System Image:** Select a system image (Android version) for your virtual device. You might need to download the system image first.
-5. **Configuration:** Configure other settings like RAM, storage, and graphics.
-6. **Start the Emulator:** Once created, you can start the emulator from the AVD Manager.
+The **Android Software Development Kit (SDK)** provides essential tools and libraries required for Android app development.
 
-### Kotlin Fundamentals
+#### **Configuring the SDK**
 
-Kotlin is the official language for Android development. It's a modern, concise, and safe language that enhances developer productivity.
 
-[Kotlin](https://kotlinlang.org/docs/kotlin-tour-welcome.html)
+| Step                            | Description                                                                                                   |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **1. Open SDK Manager**         | Access it via**Tools > SDK Manager**in Android Studio.                                                        |
+| **2. Select Android Platform**  | Choose the Android versions you want to target. Installing at least one recent stable version is recommended. |
+| **3. Install SDK Tools**        | In the**SDK Tools**tab, ensure the following are installed:                                                   |
+| -**Android SDK Build-Tools**    | Required for building and compiling your app.                                                                 |
+| -**Android Emulator**           | Allows you to test apps on virtual devices.                                                                   |
+| -**Android SDK Platform-Tools** | Includes ADB (Android Debug Bridge) for debugging.                                                            |
+| -**Google Play Services**       | Needed if your app requires Google APIs like Maps.                                                            |
 
-#### Basic Android Project Structure
+---
 
-Understanding the structure of an Android project is crucial for navigating and managing your code and resources.
+### **1.3 Configuring the Android Emulator**
 
-#### Project Layout
+The **Android Emulator** lets you test applications on virtual devices with different Android versions and hardware configurations.
 
-* **manifests:** Contains the `AndroidManifest.xml` file, which describes the essential information about your app to the Android system.
-* **java:** Contains your Kotlin source code files.
-* **res:** Contains your app's resources, such as layouts, images, and strings.
-  * **layout:** XML files that define the user interface.
-  * **drawable:** Image assets.
-  * **values:** Resource files for strings, colors, styles, etc.
-* **Gradle Scripts:** Contains the build files.
+#### **Creating a Virtual Device**
 
-#### `build.gradle.kts` Files
 
-There are two main `build.gradle.kts` files:
+| Step                               | Description                                                                    |
+| ---------------------------------- | ------------------------------------------------------------------------------ |
+| **1. Open AVD Manager**            | Go to**Tools > AVD Manager**.                                                  |
+| **2. Create Virtual Device**       | Click**+ Create Virtual Device**to set up a new emulator.                      |
+| **3. Select Hardware Profile**     | Choose a device model (e.g., Pixel, Nexus).                                    |
+| **4. Choose System Image**         | Pick an Android version for the emulator. If not available, download it first. |
+| **5. Configure Emulator Settings** | Adjust RAM, storage, and graphics settings as needed.                          |
+| **6. Start Emulator**              | Launch the emulator from the**AVD Manager**and test your app.                  |
 
-1. **Project-level `build.gradle.kts`:** Located in the root directory of your project. It defines build configurations that apply to all modules in your project.
-2. **Module-level `build.gradle.kts`:** Located within each module (e.g., `app/build.gradle`). It defines build configurations specific to that module, such as dependencies and build types.
+---
 
-#### `AndroidManifest.xml`
+## **2. Kotlin Fundamentals**
 
-This file is the heart of your Android app. It declares:
+Kotlin is the **official language** for Android development. It is modern, concise, and designed for improved safety and productivity.
 
-* **App Components:** Activities, services, broadcast receivers, and content providers.
-* **Permissions:** What permissions your app requires.
-* **App Metadata:** App name, icon, theme, etc.
+📌 **Explore Kotlin Basics**: [Kotlin Official Guide](https://kotlinlang.org/docs/kotlin-tour-welcome.html)
 
-## Assignments
+---
 
-1. **Install Android Studio and set up the Android SDK.**
-   * Download and install Android Studio.
-   * Use the SDK Manager to install the necessary SDK platforms and tools.
-   * Create and configure an Android Virtual Device (AVD).
-2. **Create a basic Kotlin project and write simple Kotlin programs.**
-   * Create a new "Empty Activity" project in Android Studio.
-   * Write simple Kotlin programs to practice variables, data types, control flow, functions, and classes. You can use the `main` function to run your code.
-3. **Explore the structure of a basic Android project.**
-   * Examine the project layout in Android Studio.
-   * Open and inspect the `build.gradle.kts` files and the `AndroidManifest.xml` file.
-   * Identify the different directories and their contents.
+## **3. Understanding Android Project Structure**
+
+A well-structured Android project ensures maintainability and better collaboration.
+
+### **3.1 Project Directory Layout**
+
+
+| Folder              | Description                                                             |
+| ------------------- | ----------------------------------------------------------------------- |
+| **manifests/**      | Contains`AndroidManifest.xml`, which defines essential app information. |
+| **java/**           | Houses Kotlin source code files.                                        |
+| **res/**            | Stores app resources like UI layouts, images, and strings.              |
+| **res/layout/**     | XML files defining UI components.                                       |
+| **res/drawable/**   | Image assets for UI design.                                             |
+| **res/values/**     | Stores app-wide resources (strings, colors, themes, etc.).              |
+| **Gradle Scripts/** | Contains build configuration files.                                     |
+
+---
+
+### **3.2 Understanding `build.gradle.kts` Files**
+
+Gradle is the **build automation system** used for managing dependencies and configurations.
+
+
+| File                                | Description                                                                                                       |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Project-level`build.gradle.kts`** | Located in the root directory. Configures global build settings.                                                  |
+| **Module-level`build.gradle.kts`**  | Located inside each module (e.g.,`app/build.gradle.kts`). Defines dependencies, compile options, and build types. |
+
+---
+
+### **3.3 `AndroidManifest.xml` – The Core of an Android App**
+
+The **AndroidManifest.xml** file defines essential properties of an Android app.
+
+
+| Component          | Description                                                                |
+| ------------------ | -------------------------------------------------------------------------- |
+| **App Components** | Declares activities, services, broadcast receivers, and content providers. |
+| **Permissions**    | Lists permissions the app requires (e.g., internet access, camera).        |
+| **Metadata**       | Defines app-level settings like app name, icon, and theme.                 |
+
+---
+
+## **4. Summary**
+
+### **What We Covered**
+
+✅ Setting up **Android Studio** and configuring the **SDK**
+✅ Creating and configuring an **Android Emulator**
+✅ Learning **Kotlin Basics** for Android development
+✅ Understanding **Android project structure** and **Gradle configuration**
+
+With this setup, you're now ready to start developing Android apps using **Jetpack Compose and Kotlin**! 🚀

@@ -80,8 +80,6 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -166,10 +164,6 @@ fun DemoApp(modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(text = "Hello $name!", modifier = modifier)
-}
 
 /* ============================================================
    1. ImageDisplayFunction
@@ -232,15 +226,6 @@ fun DrawableImageExample(drawableId: Int, description: String) {
 
 @Composable
 fun NetworkImageExample(imageUrl: String, description: String) {
-    val context = LocalContext.current // Get the context
-
-    val painter = rememberAsyncImagePainter(
-        model = ImageRequest.Builder(context)
-            .data(imageUrl)
-            .crossfade(true)
-            .build()
-    )
-
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         AsyncImage(
             model = imageUrl,
@@ -407,7 +392,6 @@ fun ResizingExample() {
 
 @Composable
 fun CroppingExample() {
-    val context = LocalContext.current
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = "Circle Crop", fontSize = 16.sp)
         Image(
@@ -487,6 +471,7 @@ fun ColorAdjustmentExample() {
                 .size(100.dp)
                 .graphicsLayer {
                     this.alpha = brightness
+
                 }
         )
 
@@ -647,7 +632,7 @@ fun CanvasBasicsFunction() {
 }
 
 /* ============================================================
-   4. CanvusAdvancedFunctions
+   4. CanvasAdvancedFunctions
    ============================================================ */
 @Composable
 fun CanvasAdvancedFunction() {
@@ -705,7 +690,9 @@ fun CanvasAdvancedFunction() {
             drawPath(
                 path,
                 color = Color.Magenta,
-                style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+                style = Stroke(width = 5.dp.toPx(),
+                    cap = StrokeCap.Round,
+                    join = StrokeJoin.Round)
             )
             val path2 = Path().apply {
                 moveTo(50.dp.toPx(), 150.dp.toPx())
@@ -932,7 +919,7 @@ fun LabPuzzle() {
     val drawable = ContextCompat.getDrawable(context, R.drawable.compose_logo) as BitmapDrawable
     val originalBitmap = drawable.bitmap
 
-    val gridSize = 3 // Adjustable grid size
+    val gridSize = 2 // Adjustable grid size
     var tileGrid by remember { mutableStateOf(shuffleTiles(originalBitmap, gridSize)) }
     val originalTiles = remember { mutableStateOf(originalTileSet(originalBitmap, gridSize)) }
     var moves by remember { mutableStateOf(0) }

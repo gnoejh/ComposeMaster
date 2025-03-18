@@ -1,11 +1,15 @@
 package com.example.videoprocessing
 
 //import androidx.camera.core.Preview
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
@@ -48,6 +52,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.set
 import androidx.core.net.toUri
@@ -56,13 +62,18 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.media3.common.Effect
 import androidx.media3.common.MediaItem
+import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.GlEffect
 import androidx.media3.effect.RgbFilter
 import androidx.media3.effect.SingleColorLut
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+//import androidx.privacysandbox.tools.core.generator.build
 import com.google.common.util.concurrent.ListenableFuture
+import java.util.concurrent.Executors
+import android.Manifest
+
 
 
 class MainActivity : ComponentActivity() {
@@ -85,6 +96,7 @@ fun DemoApp(modifier: Modifier = Modifier) {
     val tabs = listOf(
         "Video Playback",
         "Video Effects",
+        "Camera Preview",
         "Camera Effects",
     )
     var expanded by remember { mutableStateOf(false) }
@@ -131,7 +143,8 @@ fun DemoApp(modifier: Modifier = Modifier) {
             when (selectedTab) {
                 0 -> VideoPlaybackFunction()
                 1 -> VideoEffectsFunction()
-                2 -> CameraEffectsFunction()
+                2 -> CameraPreview()
+                3 -> CameraEffectsFunction()
             }
         }
     }
@@ -139,7 +152,7 @@ fun DemoApp(modifier: Modifier = Modifier) {
 
 
 /* ============================================================
-   0. VideoPlaybackFunction
+   VideoPlaybackFunction
    ============================================================ */
 @Composable
 fun VideoPlaybackFunction() {
@@ -194,7 +207,7 @@ fun VideoPlaybackFunction() {
 
 
 /* ============================================================
-   1. VideoEffectsFunction
+   VideoEffectsFunction
    ============================================================ */
 @UnstableApi
 fun shaderInverted(): Effect {
@@ -317,102 +330,112 @@ fun VideoEffectsFunction() {
 }
 
 /* ============================================================
-   7. CameraEffectsFunction
+   CameraPreview
    ============================================================ */
+@Composable
+fun CameraPreview() {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-//@androidx.annotation.OptIn(UnstableApi::class)
-//@Composable
-//fun CameraEffectsFunction() {
-//    val context = LocalContext.current
-//    val lifecycleOwner = LocalLifecycleOwner.current
-//    var selectedEffect by remember { mutableStateOf<GlEffect?>(null) }
-//
-//    val effects = listOf(
-//        "No Effect" to null,
-//        "Inverted" to shaderInverted(),
-//        "Grayscale LUT" to shaderCustom()
-//    )
-//
-//    val videoUri = remember {
-//        "android.resource://${context.packageName}/${com.example.videoprocessing.R.raw.video_test}".toUri()
-//    }
-//
-//    val player = remember(context) {
-//        ExoPlayer.Builder(context).build().apply {
-//            setMediaItem(MediaItem.fromUri(videoUri))
-//            prepare()
-//            playWhenReady = false
-//            setVideoEffects(listOfNotNull(selectedEffect))
-//        }
-//    }
-//
-//    DisposableEffect(player, lifecycleOwner) {
-//        val lifecycleObserver = LifecycleEventObserver { _, event ->
-//            when (event) {
-//                Lifecycle.Event.ON_RESUME -> player.play()
-//                Lifecycle.Event.ON_PAUSE -> player.pause()
-//                Lifecycle.Event.ON_STOP -> {
-//                    player.pause()
-//                    player.seekTo(0)
-//                }
-//
-//                else -> Unit
-//            }
-//        }
-//        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
-//
-//        onDispose {
-//            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
-//            player.release()
-//        }
-//    }
-//
-//    LaunchedEffect(selectedEffect) {
-//        player.setVideoEffects(listOfNotNull(selectedEffect))
-//    }
-//
-//    Column(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .padding(16.dp),
-//        horizontalAlignment = Alignment.CenterHorizontally
-//    ) {
-//        Text(
-//            text = "Advanced Video Effects",
-//            style = MaterialTheme.typography.headlineMedium,
-//            fontWeight = FontWeight.Bold
-//        )
-//        Spacer(modifier = Modifier.height(16.dp))
-//
-//        AndroidView(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .aspectRatio(9f / 12f),
-//            factory = { ctx ->
-//                PlayerView(ctx).apply {
-//                    this.player = player
-//                    useController = true
-//                }
-//            }
-//        )
-//
-//        Spacer(modifier = Modifier.height(16.dp))
-//
-//        LazyColumn {
-//            items(effects.size) { index ->
-//                val (effectName, effect) = effects[index]
-//                Button(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(4.dp),
-//                    onClick = { selectedEffect = effect as GlEffect? }
-//                ) {
-//                    Text(effectName)
-//                }
-//            }
-//        }
-//    }
-//}
+    // State to manage camera permission
+    var hasCameraPermission by remember { mutableStateOf(false) }
+
+    // Request camera permission launcher
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted: Boolean ->
+            hasCameraPermission = isGranted
+        }
+    )
+
+    // Check if permission is already granted
+    LaunchedEffect(key1 = true) {
+        val cameraPermission = Manifest.permission.CAMERA
+        hasCameraPermission = ContextCompat.checkSelfPermission(
+            context,
+            cameraPermission
+        ) == PackageManager.PERMISSION_GRANTED
+
+        // If permission not granted, launch request
+        if (!hasCameraPermission) {
+            requestPermissionLauncher.launch(cameraPermission)
+        }
+    }
+
+    // Camera Provider Future
+    val cameraProviderFuture: ListenableFuture<ProcessCameraProvider> =
+        remember { ProcessCameraProvider.getInstance(context) }
+
+    // Preview View
+    val previewView = remember {
+        PreviewView(context).apply {
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+        }
+    }
+
+    // Camera Preview
+    DisposableEffect(cameraProviderFuture, hasCameraPermission) {
+        val cameraProvider = cameraProviderFuture.get()
+        val cameraExecutor = Executors.newSingleThreadExecutor() // Add this line
+
+        if (hasCameraPermission) {
+            val preview = androidx.camera.core.Preview.Builder().build().also {
+                it.setSurfaceProvider(previewView.surfaceProvider)
+            }
+
+            val cameraSelector = CameraSelector.Builder()
+                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                .build()
+
+            try {
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(
+                    lifecycleOwner,
+                    cameraSelector,
+                    preview
+                )
+            } catch (exc: Exception) {
+                Log.e("TestFunction", "Use case binding failed", exc)
+            }
+        }
+        onDispose {
+//            cameraProvider.shutdown()
+            cameraExecutor.shutdown()
+            cameraProvider.unbindAll()
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (hasCameraPermission) {
+            // Display Camera Preview
+            Text(text = "Camera Preview")
+            Spacer(modifier = Modifier.height(16.dp))
+            AndroidView(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(9f / 12f),
+                factory = { previewView }
+            )
+        } else {
+            // Display Permission Request
+            Text(text = "Camera Permission Required")
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = { requestPermissionLauncher.launch(Manifest.permission.CAMERA) }) {
+                Text("Request Camera Permission")
+            }
+        }
+    }
+}
+
+
+/* ============================================================
+   3. CameraEffectsFunction
+   ============================================================ */
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
@@ -504,8 +527,10 @@ fun CameraEffectsFunction() {
 }
 
 
+
+
 /* ============================================================
-   8. Preview
+   Preview
    ============================================================ */
 
 

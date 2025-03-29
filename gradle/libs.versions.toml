@@ -1,6 +1,6 @@
 [versions]
 agp = "8.2.2" # Use a stable AGP version
-cameraCore = "1.4.1"
+cameraCore = "1.4.2"
 coilCompose = "2.7.0"
 coilComposeVersion = "2.7.0"
 kotlin = "2.1.0" # Use a stable Kotlin version
@@ -10,11 +10,13 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.1"
-composeBom = "2025.03.00" # Use the current stable Compose BOM
+composeBom = "2025.03.01" # Use the current stable Compose BOM
 constraintlayout = "2.2.1"
 constraintlayoutCompose = "1.1.1"
-media3Exoplayer = "1.5.1"
+media3Exoplayer = "1.6.0"
 uiViewbinding = "1.7.8"
+lifecycle-viewmodel-compose = "2.8.7"
+compose-compiler = "1.7.8"
 
 [libraries]
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCore" }
@@ -29,7 +31,7 @@ androidx-media3-transformer = { module = "androidx.media3:media3-transformer", v
 androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3Exoplayer" }
 androidx-ui-viewbinding = { module = "androidx.compose.ui:ui-viewbinding", version.ref = "uiViewbinding" }
 coil = { module = "io.coil-kt:coil", version.ref = "coilComposeVersion" }
-coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+#coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 coil-compose-v222 = { module = "io.coil-kt:coil-compose", version.ref = "coilComposeVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -46,6 +48,9 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 androidx-constraintlayout-compose = { group = "androidx.constraintlayout", name = "constraintlayout-compose", version.ref = "constraintlayoutCompose" }
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle-viewmodel-compose" }
+#androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle-viewmodel-compose" }
+androidx-compose-runtime = { module = "androidx.compose.runtime:runtime", version.ref = "compose-compiler" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

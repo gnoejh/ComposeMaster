@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.imageprocessing"
+    namespace = "com.example.state"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.imageprocessing"
+        applicationId = "com.example.state"
         minSdk = 34
         targetSdk = 35
         versionCode = 1
@@ -49,16 +49,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-//    implementation(libs.coil.compose)
-    implementation(libs.androidx.media3.exoplayer)
-    implementation(libs.androidx.media3.ui)
-    implementation(libs.androidx.media3.transformer)
-    implementation(libs.androidx.ui.viewbinding)
-    implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.media3.effect)
-    implementation(libs.coil.compose.v222)
-    implementation(libs.coil)
-
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.compose.runtime)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

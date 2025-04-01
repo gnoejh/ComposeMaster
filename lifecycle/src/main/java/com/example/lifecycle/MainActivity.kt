@@ -39,6 +39,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -215,7 +216,9 @@ fun LifecycleTopicContent(topic: LifecycleTopic) {
  */
 @Composable
 fun AndroidLifecycleContent() {
-    Text("Android Lifecycle: onCreate, onStart, onResume, onPause, onStop, onDestroy")
+    Text(text="Android Lifecycle: \n onCreate, \n onStart, \n onResume, \n onPause, \n onStop, \n onDestroy",
+        style = MaterialTheme.typography.headlineLarge,
+        textAlign = TextAlign.Center)
 }
 
 /**
@@ -224,7 +227,9 @@ fun AndroidLifecycleContent() {
  */
 @Composable
 fun ComposeLifecycleContent() {
-    Text("Compose Lifecycle: Composition, Recomposition, Decomposition")
+    Text(text="Compose Lifecycle: \n Composition, \n Recomposition, \n Decomposition",
+        style = MaterialTheme.typography.headlineLarge,
+        textAlign = TextAlign.Center)
 }
 
 /**
@@ -257,7 +262,9 @@ fun ObservingLifecycleContent(lifecycleOwner: LifecycleOwner = androidx.lifecycl
         }
     }
 
-    Text("Observing Android Lifecycle events. Check Logcat for event output, LifecycleObserver.")
+    Text(text="Observing Android Lifecycle events. Check Logcat for event output, LifecycleObserver.",
+        style = MaterialTheme.typography.headlineLarge,
+        textAlign = TextAlign.Center)
 }
 
 /**
@@ -267,10 +274,28 @@ fun ObservingLifecycleContent(lifecycleOwner: LifecycleOwner = androidx.lifecycl
 @Composable
 fun LifecycleAwareApisContent() {
     Column {
-        Text("Lifecycle-Aware APIs: LaunchedEffect, DisposableEffect, SideEffect, rememberUpdatedState")
+        Text(text="Lifecycle-Aware APIs: \n LaunchedEffect, \n DisposableEffect, \n SideEffect, \n rememberUpdatedState",
+            style = MaterialTheme.typography.headlineLarge,
+            textAlign = TextAlign.Center)
+        Spacer(modifier = Modifier.height(64.dp))
+        Text(text="LaunchedEffect: Used for launching coroutines in a composable. It runs when the key changes.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Left)
         LaunchedEffectExample()
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(text="DisposableEffect: Used for side effects that need to be cleaned up. It runs when the key changes.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Left)
         DisposableEffectExample()
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(text="SideEffect: Used for side effects that should run after the composition. It runs on every recomposition.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Left)
         SideEffectExample()
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(text="rememberUpdatedState: Used to remember the latest value of a state variable.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Left)
         RememberUpdatedStateExample(0)
     }
 }
@@ -281,8 +306,13 @@ fun LifecycleAwareApisContent() {
  */
 @Composable
 fun PitfallsBestPracticesContent() {
-    Text("Pitfalls: Triggering suspend functions outside effects, not cleaning up, using GlobalScope, expensive work in recomposition.")
-    Text("Best Practices: LaunchedEffect for coroutines, onDispose, rememberCoroutineScope or viewModelScope, move side effects to effect blocks.")
+    Text(text="Pitfalls: Triggering suspend functions outside effects, not cleaning up, using GlobalScope, expensive work in recomposition.",
+        style = MaterialTheme.typography.headlineLarge,
+        textAlign = TextAlign.Center)
+    Spacer(modifier = Modifier.height(32.dp))
+    Text(text="Best Practices: LaunchedEffect for coroutines, onDispose, rememberCoroutineScope or viewModelScope, move side effects to effect blocks.",
+        style = MaterialTheme.typography.headlineLarge,
+        textAlign = TextAlign.Center)
 }
 
 /**
@@ -300,7 +330,10 @@ fun LaunchedEffectExample() {
         }
     }
 
-    Text("LaunchedEffect Example: Timer: $timerValue")
+    Text(text="LaunchedEffect Example: Timer: $timerValue",
+        style = MaterialTheme.typography.bodyLarge,
+        color = Color.Red,
+        textAlign = TextAlign.Left)
 }
 
 /**
@@ -322,7 +355,10 @@ fun DisposableEffectExample() {
             Log.d("DisposableEffect", "Removed observer")
         }
     }
-    Text("DisposableEffect Example: Check Logcat for event output.")
+    Text(text="DisposableEffect Example: Check Logcat for event output.",
+        style = MaterialTheme.typography.bodyLarge,
+        color= Color.Red,
+        textAlign = TextAlign.Left)
 }
 
 /**
@@ -338,7 +374,10 @@ fun SideEffectExample() {
         Log.d("SideEffect", "SideEffect ran. Counter: $counter")
     }
 
-    Text("SideEffect Example: Counter: $counter. Check Logcat for recompositions.")
+    Text(text="SideEffect Example: Counter: $counter. Check Logcat for recompositions.",
+        style = MaterialTheme.typography.bodyLarge,
+        color= Color.Red,
+        textAlign = TextAlign.Left)
 }
 
 /**
@@ -359,7 +398,10 @@ fun RememberUpdatedStateExample(initialCount: Int) {
         }
     }
 
-    Text("RememberUpdatedState Example: Count: $count. Check Logcat for latest values.")
+    Text(text="RememberUpdatedState Example: Count: $count. Check Logcat for latest values.",
+        style = MaterialTheme.typography.bodyLarge,
+        color= Color.Red,
+        textAlign = TextAlign.Left)
 }
 
 /**

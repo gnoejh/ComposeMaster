@@ -1,27 +1,72 @@
-## Lifecycle in Jetpack Compose
+# 🌀 Lifecycle in Jetpack Compose
 
-### 📊 What Is Lifecycle?
+## 📊 What Is Lifecycle?
 
-In Android, **lifecycle** refers to the stages a component (Activity, Fragment, or Composable) goes through during its existence.
+In Android, **lifecycle** refers to the different stages a component (like an `Activity`, `Fragment`, or `Composable`) 
+goes through from creation to destruction.
 
-Jetpack Compose brings its own **composition lifecycle** that integrates with the traditional Android lifecycle, but behaves differently from Views.
-
----
-
-### 📆 Android Lifecycle vs Compose Lifecycle
-
-| Aspect                    | Android Lifecycle                | Compose Lifecycle                          |
-|---------------------------|----------------------------------|--------------------------------------------|
-| Who owns it?              | Activity / Fragment              | Composable functions                        |
-| Key stages                | `onCreate`, `onStart`, `onResume`, etc. | Enter/exit composition, recomposition     |
-| Managed by                | OS + LifecycleOwner              | Compose runtime                            |
-| Observed via              | `LifecycleObserver` or `LiveData`| `DisposableEffect`, `LaunchedEffect`       |
+Jetpack Compose introduces a distinct **composition lifecycle** that integrates with, but also differs from, 
+the traditional Android lifecycle. It is driven by UI state and recomposition rather than explicit lifecycle callbacks.
 
 ---
 
-### 📅 LifecycleOwner in Compose
+## 🔁 Android Lifecycle Diagram
 
-To observe Android lifecycle inside Compose, use `LocalLifecycleOwner`:
+Here’s a simplified diagram of the **Android Activity lifecycle** and its state transitions:
+
+```
+             +-----------------+
+             |     onCreate     |
+             +--------+--------+
+                      |
+                      v
+             +--------+--------+
+             |     onStart      |
+             +--------+--------+
+                      |
+                      v
+             +--------+--------+
+             |    onResume     |
+             +--------+--------+
+                      |
+       +--------------+--------------+
+       |                             |
+       v                             v
++--------------+           +-----------------+
+|   onPause    | <-------- |   onRestart     |
++--------------+           +-----------------+
+       |                             ^
+       v                             |
++--------------+           +-----------------+
+|   onStop     | --------> |   onDestroy     |
++--------------+           +-----------------+
+```
+
+- `onCreate` – Initialization logic (UI, bindings, ViewModel)
+- `onStart` – UI becomes visible
+- `onResume` – UI becomes interactive
+- `onPause` – Partially obscured (e.g., dialog or multitasking)
+- `onStop` – Completely hidden (background)
+- `onRestart` – Coming back to foreground
+- `onDestroy` – Cleanup before the component is destroyed
+
+---
+
+## 🔍 Android Lifecycle vs Compose Lifecycle
+
+| Aspect                     | Android Lifecycle                                      | Compose Lifecycle                                       |
+|----------------------------|--------------------------------------------------------|---------------------------------------------------------|
+| **Owner**                  | `Activity` / `Fragment`                                | Composable function                                     |
+| **Core stages**            | `onCreate`, `onStart`, `onResume`, `onPause`, etc.     | Enter composition, recomposition, leave composition     |
+| **Managed by**             | Android OS + `LifecycleOwner`                         | Compose runtime engine                                  |
+| **Observation mechanism**  | `LifecycleObserver`, `LiveData`, `Flow`, etc.         | `LaunchedEffect`, `DisposableEffect`, `SideEffect`      |
+| **Purpose**                | Manage visibility and app state                        | Manage UI rendering and side effects                    |
+
+---
+
+## 🗖️ Observing Lifecycle in Compose
+
+Use `LocalLifecycleOwner` to observe the Android lifecycle within a Composable.
 
 ```kotlin
 @Composable
@@ -41,23 +86,32 @@ fun ObserveLifecycle() {
 }
 ```
 
-✅ Good for logging, tracking foreground/background, or controlling media, etc.
+✅ **Useful for**:
+- Logging lifecycle events
+- Tracking foreground/background transitions
+- Controlling media (e.g., pause video on `ON_PAUSE`)
 
 ---
 
-### 🔄 Composition Lifecycle in Compose
+## 🔄 Composition Lifecycle in Compose
+
+Jetpack Compose has its own lifecycle managed internally:
 
 | Term               | Description                                                    |
 |--------------------|----------------------------------------------------------------|
-| **Composition**    | When a composable first enters the UI                          |
-| **Recomposition**  | When a composable is re-executed due to state change           |
-| **Decomposition**  | When a composable leaves the composition (removed from UI)     |
+| **Composition**    | When a composable is initially added to the UI tree            |
+| **Recomposition**  | When the composable is re-invoked due to state changes         |
+| **Decomposition**  | When the composable is removed from the UI                     |
 
-You can use effects like `LaunchedEffect`, `DisposableEffect`, and `SideEffect` to hook into these moments.
+🛠 You can hook into these phases with:
+
+- `LaunchedEffect`
+- `DisposableEffect`
+- `SideEffect`
 
 ---
 
-### 📅 Example: Respond to Lifecycle Events
+## 🧪 Example: Respond to Lifecycle Events
 
 ```kotlin
 @Composable
@@ -79,36 +133,40 @@ fun LogOnResume() {
 }
 ```
 
----
-
-### 🔼 Compose Lifecycle Tools
-
-| API                  | Purpose                                             | Runs On                              |
-|----------------------|-----------------------------------------------------|--------------------------------------|
-| `LaunchedEffect`     | Run coroutine on enter or key change               | Composition                          |
-| `DisposableEffect`   | Run setup/cleanup when entering/leaving composition| Composition                          |
-| `SideEffect`         | Sync with UI tree after every recomposition        | Recomposition                         |
-| `rememberUpdatedState` | Get latest state inside side-effect block         | Anytime                              |
+✅ **Scenario**: You want to trigger an action (e.g., resume a game or video) when the app returns to the foreground.
 
 ---
 
-### ⚠️ Common Lifecycle Mistakes
+## 🧰 Compose Lifecycle-Aware APIs
 
-| Mistake                                         | Fix                                                         |
-|------------------------------------------------|--------------------------------------------------------------|
-| Triggering side effects outside effects         | Use `LaunchedEffect` or `DisposableEffect` only              |
-| Forgetting to clean up observers/listeners     | Always use `onDispose` block in `DisposableEffect`           |
-| Using `GlobalScope` instead of lifecycle-aware | Use `rememberCoroutineScope`, `viewModelScope`, etc.        |
+| API                      | Description                                                   | Triggered When                                 |
+|--------------------------|---------------------------------------------------------------|------------------------------------------------|
+| `LaunchedEffect(key)`    | Launch coroutine on first composition or when key changes     | On composition or key change                   |
+| `DisposableEffect(key)`  | Setup/cleanup logic tied to composable's lifecycle            | On key change or disposal                      |
+| `SideEffect`             | Execute sync logic after every recomposition                  | After each recomposition                       |
+| `rememberUpdatedState`   | Capture the latest value inside long-lived effect blocks      | Keeps state up-to-date without recomposition   |
 
 ---
 
-### 🔧 Practice Ideas
+## ⚠️ Common Lifecycle Pitfalls
 
-| Task                                   | Goal                                                   |
-|----------------------------------------|--------------------------------------------------------|
-| Log when screen enters foreground      | Use `ON_RESUME` with `LifecycleEventObserver`          |
-| Pause/resume timer based on lifecycle  | Track `ON_PAUSE`, `ON_RESUME`                         |
-| Cancel coroutine on exit               | Wrap in `LaunchedEffect` + cancel in `DisposableEffect`|
+| Mistake                                             | Fix / Best Practice                                              |
+|------------------------------------------------------|------------------------------------------------------------------|
+| ❌ Triggering suspend functions outside effects       | ✅ Use `LaunchedEffect` to run coroutines                        |
+| ❌ Not cleaning up listeners/observers                | ✅ Use `onDispose` block in `DisposableEffect`                   |
+| ❌ Using `GlobalScope` inside Composables             | ✅ Use `rememberCoroutineScope`, `viewModelScope`, etc.          |
+| ❌ Performing expensive work during recomposition     | ✅ Move side effects to `LaunchedEffect` or `SideEffect`         |
+
+---
+
+## 🧑‍💻 Practice Tasks for Mastery
+
+| Task                                       | Learning Outcome                                             |
+|--------------------------------------------|--------------------------------------------------------------|
+| Log lifecycle event when screen resumes    | Use `ON_RESUME` with `LifecycleEventObserver`               |
+| Pause/resume a countdown timer             | Observe `ON_PAUSE` and `ON_RESUME` to control state         |
+| Cancel a network call when leaving screen  | Wrap logic in `LaunchedEffect` and clean up in `DisposableEffect` |
+| Reflect state change after recomposition   | Use `SideEffect` to update sync UI values                   |
 
 ---
 

@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
@@ -39,6 +42,9 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -47,6 +53,10 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import com.example.lifecycle.ui.theme.ComposeMasterTheme
 import kotlinx.coroutines.delay
+import kotlin.collections.get
+import kotlin.compareTo
+import kotlin.dec
+import kotlin.text.clear
 
 /**
  * The main activity of the application.
@@ -215,7 +225,9 @@ fun LifecycleTopicContent(topic: LifecycleTopic) {
  */
 @Composable
 fun AndroidLifecycleContent() {
-    Text("Android Lifecycle: onCreate, onStart, onResume, onPause, onStop, onDestroy")
+    Text(text="Android Lifecycle: \n onCreate, \n onStart, \n onResume, \n onPause, \n onStop, \n onDestroy",
+        style = MaterialTheme.typography.headlineLarge,
+        textAlign = TextAlign.Center)
 }
 
 /**
@@ -224,7 +236,9 @@ fun AndroidLifecycleContent() {
  */
 @Composable
 fun ComposeLifecycleContent() {
-    Text("Compose Lifecycle: Composition, Recomposition, Decomposition")
+    Text(text="Compose Lifecycle: \n Composition, \n Recomposition, \n Decomposition",
+        style = MaterialTheme.typography.headlineLarge,
+        textAlign = TextAlign.Center)
 }
 
 /**
@@ -257,7 +271,9 @@ fun ObservingLifecycleContent(lifecycleOwner: LifecycleOwner = androidx.lifecycl
         }
     }
 
-    Text("Observing Android Lifecycle events. Check Logcat for event output, LifecycleObserver.")
+    Text(text="Observing Android Lifecycle events. Check Logcat for event output, LifecycleObserver.",
+        style = MaterialTheme.typography.headlineLarge,
+        textAlign = TextAlign.Center)
 }
 
 /**
@@ -267,10 +283,28 @@ fun ObservingLifecycleContent(lifecycleOwner: LifecycleOwner = androidx.lifecycl
 @Composable
 fun LifecycleAwareApisContent() {
     Column {
-        Text("Lifecycle-Aware APIs: LaunchedEffect, DisposableEffect, SideEffect, rememberUpdatedState")
+        Text(text="Lifecycle-Aware APIs: \n LaunchedEffect, \n DisposableEffect, \n SideEffect, \n rememberUpdatedState",
+            style = MaterialTheme.typography.headlineLarge,
+            textAlign = TextAlign.Center)
+        Spacer(modifier = Modifier.height(64.dp))
+        Text(text="LaunchedEffect: Used for launching coroutines in a composable. It runs when the key changes.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Left)
         LaunchedEffectExample()
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(text="DisposableEffect: Used for side effects that need to be cleaned up. It runs when the key changes.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Left)
         DisposableEffectExample()
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(text="SideEffect: Used for side effects that should run after the composition. It runs on every recomposition.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Left)
         SideEffectExample()
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(text="rememberUpdatedState: Used to remember the latest value of a state variable.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Left)
         RememberUpdatedStateExample(0)
     }
 }
@@ -281,8 +315,13 @@ fun LifecycleAwareApisContent() {
  */
 @Composable
 fun PitfallsBestPracticesContent() {
-    Text("Pitfalls: Triggering suspend functions outside effects, not cleaning up, using GlobalScope, expensive work in recomposition.")
-    Text("Best Practices: LaunchedEffect for coroutines, onDispose, rememberCoroutineScope or viewModelScope, move side effects to effect blocks.")
+    Text(text="Pitfalls: Triggering suspend functions outside effects, not cleaning up, using GlobalScope, expensive work in recomposition.",
+        style = MaterialTheme.typography.headlineLarge,
+        textAlign = TextAlign.Center)
+    Spacer(modifier = Modifier.height(32.dp))
+    Text(text="Best Practices: LaunchedEffect for coroutines, onDispose, rememberCoroutineScope or viewModelScope, move side effects to effect blocks.",
+        style = MaterialTheme.typography.headlineLarge,
+        textAlign = TextAlign.Center)
 }
 
 /**
@@ -300,7 +339,10 @@ fun LaunchedEffectExample() {
         }
     }
 
-    Text("LaunchedEffect Example: Timer: $timerValue")
+    Text(text="LaunchedEffect Example: Timer: $timerValue",
+        style = MaterialTheme.typography.bodyLarge,
+        color = Color.Red,
+        textAlign = TextAlign.Left)
 }
 
 /**
@@ -322,7 +364,10 @@ fun DisposableEffectExample() {
             Log.d("DisposableEffect", "Removed observer")
         }
     }
-    Text("DisposableEffect Example: Check Logcat for event output.")
+    Text(text="DisposableEffect Example: Check Logcat for event output.",
+        style = MaterialTheme.typography.bodyLarge,
+        color= Color.Red,
+        textAlign = TextAlign.Left)
 }
 
 /**
@@ -338,7 +383,10 @@ fun SideEffectExample() {
         Log.d("SideEffect", "SideEffect ran. Counter: $counter")
     }
 
-    Text("SideEffect Example: Counter: $counter. Check Logcat for recompositions.")
+    Text(text="SideEffect Example: Counter: $counter. Check Logcat for recompositions.",
+        style = MaterialTheme.typography.bodyLarge,
+        color= Color.Red,
+        textAlign = TextAlign.Left)
 }
 
 /**
@@ -359,8 +407,150 @@ fun RememberUpdatedStateExample(initialCount: Int) {
         }
     }
 
-    Text("RememberUpdatedState Example: Count: $count. Check Logcat for latest values.")
+    Text(text="RememberUpdatedState Example: Count: $count. Check Logcat for latest values.",
+        style = MaterialTheme.typography.bodyLarge,
+        color= Color.Red,
+        textAlign = TextAlign.Left)
 }
+
+/**
+ * Composable function that displays content for the "Game" topic.
+ * This code will display a Hangman game in the screen.
+ * Each time the user change the state of the lifecycle, using the back button, the lives will be updated.
+ */
+//@Composable
+//fun GameContent() {
+//    // State variables for the game
+//    var wordToGuess by remember { mutableStateOf("") }
+//    var guessedLetters = remember { mutableStateListOf<Char>() }
+//    var lives by remember { mutableStateOf(6) }
+//    var gameMessage by remember { mutableStateOf("Guess a letter!") }
+//
+//    // List of words to choose from
+//    val wordList = remember {
+//        listOf(
+//            "ANDROID",
+//            "KOTLIN",
+//            "COMPOSE",
+//            "DEVELOPER",
+//            "JETPACK",
+//            "GOOGLE",
+//            "MOBILE",
+//            "STUDIO",
+//            "APPLICATION",
+//            "HONGJEONG"
+//        )
+//    }
+//
+//    //Launched effect to select a new word when the view is created.
+//    LaunchedEffect(Unit) {
+//        wordToGuess = wordList.random()
+//    }
+//
+//    // Get the current lifecycle owner (Activity or Fragment).
+//    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+//
+//    // DisposableEffect to observe lifecycle events.
+//    DisposableEffect(lifecycleOwner) {
+//        // Create a LifecycleEventObserver to listen for lifecycle events.
+//        val observer = LifecycleEventObserver { _, event ->
+//            // Check if the lifecycle event is ON_STOP.
+//            if (event == Lifecycle.Event.ON_STOP) {
+//                //If the state is stop the value of lives will be updated.
+//                lives = 6
+//                guessedLetters.clear()
+//                gameMessage = "Guess a letter!"
+//                wordToGuess = wordList.random()
+//                Log.d("Game", "Observed event: $event, lives: $lives")
+//            }
+//            // Log all the events.
+//            Log.d("Game", "Observed event: $event")
+//        }
+//        // Add the observer to the lifecycle.
+//        lifecycleOwner.lifecycle.addObserver(observer)
+//
+//        // When the DisposableEffect is disposed, remove the observer to avoid memory leaks.
+//        onDispose {
+//            lifecycleOwner.lifecycle.removeObserver(observer)
+//        }
+//    }
+//
+//    // Function to handle letter guessing
+//    fun guessLetter(letter: Char) {
+//        if (letter !in guessedLetters) {
+//            guessedLetters.add(letter)
+//            if (letter !in wordToGuess) {
+//                lives--
+//            }
+//            if (lives == 0) {
+//                gameMessage =
+//                    "You lost! The word was $wordToGuess. Click the back button and try again"
+//            } else if (wordToGuess.all { it in guessedLetters }) {
+//                gameMessage = "You won! Click the back button and try again"
+//            } else {
+//                gameMessage = "Guess a letter!"
+//            }
+//        }
+//    }
+//
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .padding(16.dp),
+//        horizontalAlignment = Alignment.CenterHorizontally,
+//        verticalArrangement = Arrangement.Center
+//    ) {
+//        // Display the word with underscores
+//        val displayWord = wordToGuess.map { if (it in guessedLetters) it else '_' }
+//        Text(
+//            text = displayWord.joinToString(" "),
+//            style = MaterialTheme.typography.headlineLarge,
+//            textAlign = TextAlign.Center
+//        )
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        // Display lives
+//        Text(text = "Lives: $lives")
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        // Display game message
+//        Text(text = gameMessage, textAlign = TextAlign.Center)
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        // Display guessed letters
+//        Text(text = "Guessed letters: ${guessedLetters.joinToString(", ")}")
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        // Input for guessing a letter
+//        var inputLetter by remember { mutableStateOf("") }
+//        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+//            TextField(
+//                value = inputLetter,
+//                onValueChange = {
+//                    if (it.length <= 1) {
+//                        inputLetter = it.uppercase()
+//                    }
+//                },
+//                label = { Text("Enter a letter") }
+//            )
+//
+//            Spacer(modifier = Modifier.padding(4.dp))
+//
+//            Button(onClick = {
+//                if (inputLetter.isNotEmpty()) {
+//                    guessLetter(inputLetter[0])
+//                    inputLetter = ""
+//                }
+//            }) {
+//                Text("Guess")
+//            }
+//        }
+//    }
+//}
 
 /**
  * Composable function that displays content for the "Game" topic.
@@ -387,6 +577,7 @@ fun GameContent() {
             "MOBILE",
             "STUDIO",
             "APPLICATION",
+            "HONGJEONG"
         )
     }
 
@@ -448,6 +639,9 @@ fun GameContent() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // Display the hangman diagram
+        HangmanDiagram(lives = lives)
+
         // Display the word with underscores
         val displayWord = wordToGuess.map { if (it in guessedLetters) it else '_' }
         Text(
@@ -486,7 +680,7 @@ fun GameContent() {
                 label = { Text("Enter a letter") }
             )
 
-            Spacer(modifier = Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.padding(4.dp))
 
             Button(onClick = {
                 if (inputLetter.isNotEmpty()) {
@@ -499,6 +693,117 @@ fun GameContent() {
         }
     }
 }
+
+/**
+ * Composable function to display the Hangman diagram.
+ * This function displays a Hangman drawing based on the number of lives left.
+ *
+ * @param lives The number of lives remaining in the game.
+ */
+@Composable
+fun HangmanDiagram(lives: Int) {
+    Canvas(modifier = Modifier.size(100.dp)) {
+        // Define the drawing parameters
+        val canvasWidth = size.width
+        val canvasHeight = size.height
+        val strokeWidth = 5.dp.toPx()
+        val color = Color.Black
+
+        // Draw the base
+        drawLine(
+            color = color,
+            start = Offset(canvasWidth * 0.1f, canvasHeight * 0.9f),
+            end = Offset(canvasWidth * 0.6f, canvasHeight * 0.9f),
+            strokeWidth = strokeWidth
+        )
+
+        // Draw the vertical pole
+        drawLine(
+            color = color,
+            start = Offset(canvasWidth * 0.2f, canvasHeight * 0.9f),
+            end = Offset(canvasWidth * 0.2f, canvasHeight * 0.1f),
+            strokeWidth = strokeWidth
+        )
+
+        // Draw the horizontal beam
+        drawLine(
+            color = color,
+            start = Offset(canvasWidth * 0.2f, canvasHeight * 0.1f),
+            end = Offset(canvasWidth * 0.5f, canvasHeight * 0.1f),
+            strokeWidth = strokeWidth
+        )
+
+        // Draw the rope
+        drawLine(
+            color = color,
+            start = Offset(canvasWidth * 0.5f, canvasHeight * 0.1f),
+            end = Offset(canvasWidth * 0.5f, canvasHeight * 0.2f),
+            strokeWidth = strokeWidth
+        )
+
+        // Draw the head
+        if (lives < 6) {
+            drawCircle(
+                color = color,
+                radius = canvasWidth * 0.1f,
+                center = Offset(canvasWidth * 0.5f, canvasHeight * 0.3f),
+                style = Stroke(strokeWidth)
+            )
+        }
+
+        // Draw the body
+        if (lives < 5) {
+            drawLine(
+                color = color,
+                start = Offset(canvasWidth * 0.5f, canvasHeight * 0.4f),
+                end = Offset(canvasWidth * 0.5f, canvasHeight * 0.6f),
+                strokeWidth = strokeWidth
+            )
+        }
+
+        // Draw the left arm
+        if (lives < 4) {
+            drawLine(
+                color = color,
+                start = Offset(canvasWidth * 0.5f, canvasHeight * 0.45f),
+                end = Offset(canvasWidth * 0.3f, canvasHeight * 0.35f),
+                strokeWidth = strokeWidth
+            )
+        }
+
+        // Draw the right arm
+        if (lives < 3) {
+            drawLine(
+                color = color,
+                start = Offset(canvasWidth * 0.5f, canvasHeight * 0.45f),
+                end = Offset(canvasWidth * 0.7f, canvasHeight * 0.35f),
+                strokeWidth = strokeWidth
+            )
+        }
+
+        // Draw the left leg
+        if (lives < 2) {
+            drawLine(
+                color = color,
+                start = Offset(canvasWidth * 0.5f, canvasHeight * 0.6f),
+                end = Offset(canvasWidth * 0.3f, canvasHeight * 0.7f),
+                strokeWidth = strokeWidth
+            )
+        }
+
+        // Draw the right leg
+        if (lives < 1) {
+            drawLine(
+                color = color,
+                start = Offset(canvasWidth * 0.5f, canvasHeight * 0.6f),
+                end = Offset(canvasWidth * 0.7f, canvasHeight * 0.7f),
+                strokeWidth = strokeWidth
+            )
+        }
+    }
+}
+
+
 
 /**
  * Preview function for the LifecycleApp composable.

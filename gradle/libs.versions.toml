@@ -1,5 +1,5 @@
 [versions]
-agp = "8.9.0" # Use a stable AGP version
+agp = "8.9.1" # Use a stable AGP version
 cameraCore = "1.4.2"
 coilCompose = "2.7.0"
 coilComposeVersion = "2.7.0"

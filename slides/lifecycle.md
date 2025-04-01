@@ -14,32 +14,16 @@ the traditional Android lifecycle. It is driven by UI state and recomposition ra
 
 Here’s a simplified diagram of the **Android Activity lifecycle** and its state transitions:
 
-```
-             +-----------------+
-             |     onCreate     |
-             +--------+--------+
-                      |
-                      v
-             +--------+--------+
-             |     onStart      |
-             +--------+--------+
-                      |
-                      v
-             +--------+--------+
-             |    onResume     |
-             +--------+--------+
-                      |
-       +--------------+--------------+
-       |                             |
-       v                             v
-+--------------+           +-----------------+
-|   onPause    | <-------- |   onRestart     |
-+--------------+           +-----------------+
-       |                             ^
-       v                             |
-+--------------+           +-----------------+
-|   onStop     | --------> |   onDestroy     |
-+--------------+           +-----------------+
+```mermaid
+graph TD
+A[onCreate] --> B[onStart]
+B --> C[onResume]
+C --> D[onPause]
+D --> E[onStop]
+E --> F[onDestroy]
+E --> G[onRestart]
+G --> B
+D --> G
 ```
 
 - `onCreate` – Initialization logic (UI, bindings, ViewModel)

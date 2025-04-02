@@ -1,4 +1,17 @@
 # 🌀 Lifecycle in Jetpack Compose
+## Activity/Fragment/View vs Composables
+Key Differences Summarized
+
+| Feature           | Activities/Fragments (View System)                       | Jetpack Compose                                          |
+| ----------------- | ------------------------------------------------------- | -------------------------------------------------------- |
+| **UI Paradigm**       | Imperative (you tell the system how to change things)  | Declarative (you describe what the UI should look like) |
+| **Building Blocks**   | `View`s, XML layouts                                    | `@Composable` functions                                   |
+| **State Management**  | Manual updates to `View` objects                         | State-driven, automatic recomposition                    |
+| **UI Definition**     | XML and code                                            | Kotlin code only                                         |
+| **UI Changes**        | Mutable `View`s                                          | Immutable UI, recomposed when state changes             |
+| **UI Updates**        | Imperative code to modify the `View` hierarchy           | Declarative description of state, recomposition          |
+| **UI Reusability**    | Possible, but often requires custom `View`s               | Composable functions encourage reusability               |
+| **Lifecycle Management** | Activity and Fragment lifecycles| No separate lifecycle, state management handles similar concerns |
 
 ## 📊 What Is Lifecycle?
 
@@ -36,6 +49,36 @@ D --> G
 
 ---
 
+| Component          | Key Class/Interface | Lifecycle State Events Observed                                                                    | Purpose                                                                                                                                | Common Use Cases                                                                                           |
+| ------------------ | ------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **LifecycleOwner** | `LifecycleOwner`    | All `Lifecycle.Event`s (e.g., `ON_CREATE`, `ON_START`, `ON_RESUME`, `ON_PAUSE`, `ON_STOP`, `ON_DESTROY`) | An interface indicating a class has a lifecycle. It exposes its `Lifecycle` to observers.                                         | Activities and Fragments are `LifecycleOwner`s. You can implement this interface if you need custom lifecycle management. |
+| **Lifecycle**      | `Lifecycle`         | `Lifecycle.Event`s and `Lifecycle.State`s.                                                          | Represents the lifecycle state of a component (like an Activity or Fragment).                                                              | Used by `LifecycleOwner` to manage and expose lifecycle state. Observers register with the `Lifecycle` object. |
+| **LifecycleObserver** | `LifecycleObserver` | All `Lifecycle.Event`s via annotated methods (`@OnLifecycleEvent`)                                     | An interface indicating a class is a lifecycle observer.                                                                                    | Classes that need to be notified of lifecycle changes.                                                       |
+| **DefaultLifecycleObserver** | `DefaultLifecycleObserver` | All `Lifecycle.Event`s via methods (`onCreate`, `onStart`, `onResume`, `onPause`, `onStop`, `onDestroy`) | An interface that provides default empty implementations for each lifecycle method to implement specific events. | If you want to receive multiple lifecycle events, it helps you to avoid implementing empty functions.        |
+| **ProcessLifecycleOwner** | `ProcessLifecycleOwner` | `ON_START`, `ON_RESUME`, `ON_PAUSE`, `ON_STOP`  of the entire application process. | Represents the lifecycle of the whole application process, not a single activity or fragment. | Track when the app is in the foreground or background. Perform actions that should occur at the application level. |
+
+---
+
+## Compose Lifecycle
+```mermaid
+graph TD
+    A[Initial Composition] --> B(Entering Composition);
+    B --> C{Recomposition Triggered?};
+    C -- Yes --> D[Recomposition];
+    C -- No --> E[Stable Composition];
+    D --> F{Changes Detected?};
+    F -- Yes --> D;
+    F -- No --> E;
+    E --> G{Exiting Composition?};
+    G -- Yes --> H([Disposed]);
+    G -- No --> E;
+    H --> I[Composition Ended];
+    style A fill:#ccf,stroke:#333,stroke-width:2px
+    style D fill:#cfc,stroke:#333,stroke-width:2px
+    style H fill:#fcc,stroke:#333,stroke-width:2px
+    classDef nodefill fill:#eee,stroke:#333,stroke-width:2px;
+    class A,D,H nodefill;
+```
 ## 🔍 Android Lifecycle vs Compose Lifecycle
 
 | Aspect                     | Android Lifecycle                                      | Compose Lifecycle                                       |
@@ -69,6 +112,12 @@ fun ObserveLifecycle() {
     }
 }
 ```
+- LocalLifecycleOwner.current: Provides a way for composables to access 
+  the LifecycleOwner of the Activity or Fragment.
+- LifecycleEventObserver: Allows you to listen to lifecycle events 
+  and execute code in response.
+- Together, they allow you to make your composables 
+  "lifecycle aware" even though they don't have their own lifecycle.
 
 ✅ **Useful for**:
 - Logging lifecycle events

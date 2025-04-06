@@ -1,5 +1,6 @@
 package com.example.mltflow
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
@@ -96,6 +97,8 @@ import java.io.File
 import java.io.IOException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.text.forEach
+import kotlin.text.trim
 
 // Enum class defining ML feature types
 enum class MLFeature(val title: String) {
@@ -190,12 +193,20 @@ data class Detection(val label: String, val confidence: Float, val boundingBox: 
 fun ImageClassificationScreen() {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    
+    val labelsFilename = "labels.txt" // Your labels file
+    var labels by remember { mutableStateOf<List<String>>(emptyList()) }
+
+    // 라벨 로드를 화면 시작 시 수행
+    LaunchedEffect(Unit) {
+        labels = loadLabels(context, labelsFilename)
+        Log.d("ImageClassification", "Labels loaded: ${labels.size} labels")
+    }
+
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var classifications by remember { mutableStateOf<List<Classification>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
@@ -203,7 +214,7 @@ fun ImageClassificationScreen() {
             imageUri = it
             isLoading = true
             errorMessage = null
-            
+
             coroutineScope.launch {
                 try {
                     val bitmap = withContext(Dispatchers.IO) {
@@ -213,54 +224,46 @@ fun ImageClassificationScreen() {
                             decoder.isMutableRequired = true
                         }
                     }
-                    
-                    val modelPath = "mobilenet_v1_1.0_224_quant.tflite"
-                    
-                    // Check if model file exists and copy from assets if needed
-                    val modelFile = File(context.filesDir, modelPath)
-                    if (!modelFile.exists()) {
-                        try {
-                            withContext(Dispatchers.IO) {
-                                context.assets.open(modelPath).use { inputStream ->
-                                    modelFile.outputStream().use { outputStream ->
-                                        inputStream.copyTo(outputStream)
-                                    }
-                                }
-                            }
-                        } catch (e: IOException) {
-                            errorMessage = "Cannot load model file: ${e.message}"
-                            Log.e("ImageClassification", "Error copying model file", e)
-                        }
-                    }
 
-                    // Try to create TensorFlow Lite classifier
+                    val modelPath = "mobilenet_v1_1.0_224_quant.tflite"
+
                     try {
+                        // 직접 TensorFlow Lite 분류기 생성
                         val options = ImageClassifier.ImageClassifierOptions.builder()
                             .setMaxResults(5)
                             .build()
 
                         val classifier = withContext(Dispatchers.IO) {
                             try {
+                                // assets에서 바로 모델을 로드
                                 ImageClassifier.createFromFileAndOptions(
                                     context,
-                                    modelPath,
+                                    modelPath, // assets 경로에서 직접 로드
                                     options
                                 )
                             } catch (e: Exception) {
                                 Log.e("ImageClassification", "Error creating classifier", e)
+                                errorMessage = "분류기 생성 오류: ${e.message}"
                                 null
                             }
                         }
 
                         if (classifier != null) {
-                            // Perform image classification
+                            // 이미지 분류 수행
                             val tensorImage = org.tensorflow.lite.support.image.TensorImage.fromBitmap(bitmap)
                             val results = classifier.classify(tensorImage)
+                            Log.d("ImageClassification", "Classification results: $results")
+                            
+                            // 디버깅용 로그 추가
+                            if (results.isNotEmpty() && results[0].categories.isNotEmpty()) {
+                                val firstCategory = results[0].categories[0]
+                                Log.d("ImageClassification", "First result: index=${firstCategory.index}, label=${firstCategory.label}, score=${firstCategory.score}")
+                            }
 
-                            classifications = processClassificationResults(results)
+                            classifications = processClassificationResults(results, labels)
+                            classifier.close() // 사용 후 분류기 닫기
                         } else {
-                            // Use example data
-                            errorMessage = "Could not load classifier. Showing example data."
+                            errorMessage = "분류기를 로드할 수 없습니다. 예제 데이터를 표시합니다."
                             classifications = listOf(
                                 Classification("Cat", 0.95f),
                                 Classification("Dog", 0.03f),
@@ -270,13 +273,13 @@ fun ImageClassificationScreen() {
                             )
                         }
                     } catch (e: Exception) {
-                        errorMessage = "Error during classification: ${e.message}"
+                        errorMessage = "분류 중 오류 발생: ${e.message}"
                         Log.e("ImageClassification", "Classification error", e)
                     }
 
                     isLoading = false
                 } catch (e: Exception) {
-                    errorMessage = "Error processing image: ${e.message}"
+                    errorMessage = "이미지 처리 오류: ${e.message}"
                     isLoading = false
                     Log.e("ImageClassification", "Error processing image", e)
                 }
@@ -367,14 +370,56 @@ fun ImageClassificationScreen() {
     }
 }
 
-// 추가된 유틸리티 함수로 Classifications 처리
-private fun processClassificationResults(results: List<Classifications>): List<Classification> {
-    return if (results.isNotEmpty() && results[0].categories.isNotEmpty()) {
-        results[0].categories.map {
-            Classification(it.label ?: "Unknown", it.score)
+//Load the labels from the provided file.
+private fun loadLabels(context: Context, filename: String): List<String> {
+    val labels = mutableListOf<String>()
+    try {
+        context.assets.open(filename).bufferedReader().useLines { lines ->
+            lines.forEach { 
+                if (it.isNotBlank()) {
+                    labels.add(it.trim())
+                }
+            }
         }
-    } else {
-        emptyList()
+        Log.i("ImageClassification", "Labels loaded correctly. Count: ${labels.size}")
+        
+        // 처음 10개 라벨 로깅 (디버깅 목적)
+        if (labels.isNotEmpty()) {
+            val previewLabels = labels.take(10).joinToString(", ")
+            Log.d("ImageClassification", "First 10 labels: $previewLabels")
+        }
+    } catch (e: IOException) {
+        Log.e("ImageClassification", "Error loading labels: ${e.message}", e)
+    }
+    return labels
+}
+
+//New Classifications process, using the list of label to map the names.
+private fun processClassificationResults(results: List<Classifications>, labels: List<String>): List<Classification> {
+    if (results.isEmpty() || results[0].categories.isEmpty()) {
+        Log.w("ImageClassification", "No classification results returned")
+        return emptyList()
+    }
+    
+    // 디버깅 목적으로 전체 결과 로깅
+    Log.d("ImageClassification", "Processing ${results[0].categories.size} categories")
+    Log.d("ImageClassification", "Labels available: ${labels.size}")
+    
+    return results[0].categories.map {
+        // 인덱스 기반 라벨 매핑을 강제로 적용
+        val label = if (it.index >= 0 && it.index < labels.size && labels.isNotEmpty()) {
+            labels[it.index]
+        } else if (!it.label.isNullOrBlank() && it.label != "???") {
+            // TFLite 모델이 직접 라벨을 반환하는 경우(보조 로직)
+            it.label
+        } else {
+            // 두 가지 방법 모두 실패한 경우
+            Log.w("ImageClassification", "Could not determine label for index: ${it.index}")
+            "Unknown (${it.index})"
+        }
+        
+        Log.d("ImageClassification", "Mapped label: index=${it.index}, final label=$label, score=${it.score}")
+        Classification(label, it.score)
     }
 }
 
@@ -813,4 +858,3 @@ fun MLTensorFlowAppPreview() {
         MLTensorFlowApp()
     }
 }
-

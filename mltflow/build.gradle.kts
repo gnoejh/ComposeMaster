@@ -78,8 +78,15 @@ dependencies {
     implementation("org.tensorflow:tensorflow-lite-task-vision:0.4.4") {
         exclude(group = "org.tensorflow", module = "tensorflow-lite-api")
         exclude(group = "org.tensorflow", module = "tensorflow-lite-support-api")
+
     }
-    
+
+//    implementation(libs.tensorflow.lite.task.vision) // Use latest version
+//    implementation(libs.tensorflow.lite.task.vision) // Use latest version
+//    implementation(libs.tensorflow.lite) // Use latest version
+
+
+
     // CameraX
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)

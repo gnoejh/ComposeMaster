@@ -1,14 +1,11 @@
 package com.example.mltflow
 
-import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.graphics.Paint
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -18,7 +15,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.Preview as CameraPreview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
@@ -27,7 +23,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -71,8 +66,6 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -85,20 +78,17 @@ import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
 import com.google.mlkit.vision.objects.ObjectDetection
-import com.google.mlkit.vision.objects.ObjectDetector
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.task.vision.classifier.Classifications
 import org.tensorflow.lite.task.vision.classifier.ImageClassifier
-import java.io.File
-import java.io.IOException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import kotlin.text.forEach
-import kotlin.text.trim
+import androidx.camera.core.Preview as CameraPreview
 
 // Enum class defining ML feature types
 enum class MLFeature(val title: String) {
@@ -183,25 +173,40 @@ fun WelcomeScreen() {
     }
 }
 
-// Data class for image classification
-data class Classification(val label: String, val confidence: Float)
+
+
 
 // Data class for object detection
 data class Detection(val label: String, val confidence: Float, val boundingBox: Rect)
+
+// Updated Classification data class to use Int for label
+data class Classification(val label: Int, val confidence: Float)
+
+// Mapping function for integer to string labels (replace with your own)
+fun mapIntegerLabelToString(label: Int): String {
+    return when (label) {
+        282 -> "Cat"
+        246 -> "Dog"
+        340 -> "Hamster"
+        341 -> "Mouse"
+        339 -> "Rabbit"
+        258 -> "Fox"
+        285 -> "Tiger"
+        281 -> "Leopard"
+        354 -> "Hippopotamus"
+        290 -> "Cow"
+        289 -> "Horse"
+        376 -> "Zebra"
+        299 -> "Pig"
+        // Add more mappings as needed
+        else -> "Unknown"
+    }
+}
 
 @Composable
 fun ImageClassificationScreen() {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val labelsFilename = "labels.txt" // Your labels file
-    var labels by remember { mutableStateOf<List<String>>(emptyList()) }
-
-    // 라벨 로드를 화면 시작 시 수행
-    LaunchedEffect(Unit) {
-        labels = loadLabels(context, labelsFilename)
-        Log.d("ImageClassification", "Labels loaded: ${labels.size} labels")
-    }
-
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var classifications by remember { mutableStateOf<List<Classification>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
@@ -217,69 +222,44 @@ fun ImageClassificationScreen() {
 
             coroutineScope.launch {
                 try {
-                    val bitmap = withContext(Dispatchers.IO) {
-                        val source = ImageDecoder.createSource(context.contentResolver, it)
-                        ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
-                            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
-                            decoder.isMutableRequired = true
-                        }
-                    }
+                    val bitmap = loadBitmap(context, it)
 
                     val modelPath = "mobilenet_v1_1.0_224_quant.tflite"
 
                     try {
-                        // 직접 TensorFlow Lite 분류기 생성
-                        val options = ImageClassifier.ImageClassifierOptions.builder()
-                            .setMaxResults(5)
-                            .build()
-
-                        val classifier = withContext(Dispatchers.IO) {
-                            try {
-                                // assets에서 바로 모델을 로드
-                                ImageClassifier.createFromFileAndOptions(
-                                    context,
-                                    modelPath, // assets 경로에서 직접 로드
-                                    options
-                                )
-                            } catch (e: Exception) {
-                                Log.e("ImageClassification", "Error creating classifier", e)
-                                errorMessage = "분류기 생성 오류: ${e.message}"
-                                null
-                            }
-                        }
-
+                        val classifier = createImageClassifier(context, modelPath)
                         if (classifier != null) {
-                            // 이미지 분류 수행
-                            val tensorImage = org.tensorflow.lite.support.image.TensorImage.fromBitmap(bitmap)
-                            val results = classifier.classify(tensorImage)
+                            val results = classifyImage(classifier, bitmap)
                             Log.d("ImageClassification", "Classification results: $results")
-                            
+
                             // 디버깅용 로그 추가
                             if (results.isNotEmpty() && results[0].categories.isNotEmpty()) {
                                 val firstCategory = results[0].categories[0]
                                 Log.d("ImageClassification", "First result: index=${firstCategory.index}, label=${firstCategory.label}, score=${firstCategory.score}")
                             }
-
-                            classifications = processClassificationResults(results, labels)
-                            classifier.close() // 사용 후 분류기 닫기
+                            classifications = processClassificationResults(results)
+                            classifier.close()
+                            classifications.forEach { classification ->
+                                Log.d("ClassificationResults", "Index: ${classification.label}, Score: ${classification.confidence}")
+                            }
                         } else {
-                            errorMessage = "분류기를 로드할 수 없습니다. 예제 데이터를 표시합니다."
+                            errorMessage = "Classifier could not be loaded."
                             classifications = listOf(
-                                Classification("Cat", 0.95f),
-                                Classification("Dog", 0.03f),
-                                Classification("Rabbit", 0.01f),
-                                Classification("Hamster", 0.005f),
-                                Classification("Guinea Pig", 0.002f)
+                                Classification(0, 0.95f),
+                                Classification(1, 0.03f),
+                                Classification(2, 0.01f),
+                                Classification(3, 0.005f),
+                                Classification(4, 0.002f)
                             )
                         }
                     } catch (e: Exception) {
-                        errorMessage = "분류 중 오류 발생: ${e.message}"
+                        errorMessage = "Classification error: ${e.message}"
                         Log.e("ImageClassification", "Classification error", e)
                     }
 
                     isLoading = false
                 } catch (e: Exception) {
-                    errorMessage = "이미지 처리 오류: ${e.message}"
+                    errorMessage = "Image processing error: ${e.message}"
                     isLoading = false
                     Log.e("ImageClassification", "Error processing image", e)
                 }
@@ -306,136 +286,53 @@ fun ImageClassificationScreen() {
                 contentDescription = "Selected image",
                 modifier = Modifier
                     .height(200.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Fit
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (isLoading) {
-                CircularProgressIndicator()
-            } else {
-                if (errorMessage != null) {
-                    Text(
-                        text = errorMessage!!,
-                        color = MaterialTheme.colorScheme.error,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(8.dp)
-                    )
-                }
-
-                Text(
-                    text = "Classification Results:",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                )
-
-                if (classifications.isEmpty()) {
-                    Text(
-                        text = "No objects recognized",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                } else {
-                    LazyColumn {
-                        items(classifications) { classification ->
-                            ClassificationItem(classification)
-                        }
-                    }
-                }
-            }
-        } ?: run {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outline,
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Select an image to classify with TensorFlow Lite",
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
         }
-    }
-}
 
-//Load the labels from the provided file.
-private fun loadLabels(context: Context, filename: String): List<String> {
-    val labels = mutableListOf<String>()
-    try {
-        context.assets.open(filename).bufferedReader().useLines { lines ->
-            lines.forEach { 
-                if (it.isNotBlank()) {
-                    labels.add(it.trim())
-                }
-            }
-        }
-        Log.i("ImageClassification", "Labels loaded correctly. Count: ${labels.size}")
-        
-        // 처음 10개 라벨 로깅 (디버깅 목적)
-        if (labels.isNotEmpty()) {
-            val previewLabels = labels.take(10).joinToString(", ")
-            Log.d("ImageClassification", "First 10 labels: $previewLabels")
-        }
-    } catch (e: IOException) {
-        Log.e("ImageClassification", "Error loading labels: ${e.message}", e)
-    }
-    return labels
-}
-
-//New Classifications process, using the list of label to map the names.
-private fun processClassificationResults(results: List<Classifications>, labels: List<String>): List<Classification> {
-    if (results.isEmpty() || results[0].categories.isEmpty()) {
-        Log.w("ImageClassification", "No classification results returned")
-        return emptyList()
-    }
-    
-    // 디버깅 목적으로 전체 결과 로깅
-    Log.d("ImageClassification", "Processing ${results[0].categories.size} categories")
-    Log.d("ImageClassification", "Labels available: ${labels.size}")
-    
-    return results[0].categories.map {
-        // 인덱스 기반 라벨 매핑을 강제로 적용
-        val label = if (it.index >= 0 && it.index < labels.size && labels.isNotEmpty()) {
-            labels[it.index]
-        } else if (!it.label.isNullOrBlank() && it.label != "???") {
-            // TFLite 모델이 직접 라벨을 반환하는 경우(보조 로직)
-            it.label
+        if (isLoading) {
+            // Display a loading indicator
+        } else if (errorMessage != null) {
+            Text("Error: $errorMessage")
         } else {
-            // 두 가지 방법 모두 실패한 경우
-            Log.w("ImageClassification", "Could not determine label for index: ${it.index}")
-            "Unknown (${it.index})"
+            // Display classification results using the mapping function
+            classifications.forEach { classification ->
+                val stringLabel = mapIntegerLabelToString(classification.label)
+                Text("Label: $stringLabel (Confidence: ${classification.confidence})")
+            }
         }
-        
-        Log.d("ImageClassification", "Mapped label: index=${it.index}, final label=$label, score=${it.score}")
-        Classification(label, it.score)
     }
 }
 
-@Composable
-fun ClassificationItem(classification: Classification) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(text = classification.label)
-        Text(
-            text = "${(classification.confidence * 100).toInt()}%",
-            fontWeight = FontWeight.Bold
-        )
+private suspend fun loadBitmap(context: android.content.Context, uri: Uri): Bitmap = withContext(Dispatchers.IO) {
+    val source = ImageDecoder.createSource(context.contentResolver, uri)
+    ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
+        decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+        decoder.isMutableRequired = true
+    }
+}
+
+private suspend fun createImageClassifier(context: android.content.Context, modelPath: String): ImageClassifier? = withContext(Dispatchers.IO) {
+    try {
+        val options = ImageClassifier.ImageClassifierOptions.builder()
+            .setMaxResults(5)
+            .build()
+        ImageClassifier.createFromFileAndOptions(context, modelPath, options)
+    } catch (e: Exception) {
+        Log.e("ImageClassification", "Error creating classifier", e)
+        null
+    }
+}
+
+private suspend fun classifyImage(classifier: ImageClassifier, bitmap: Bitmap): List<Classifications> = withContext(Dispatchers.IO) {
+    val tensorImage = TensorImage.fromBitmap(bitmap)
+    classifier.classify(tensorImage)
+}
+
+private fun processClassificationResults(results: List<Classifications>): List<Classification> {
+    return results.flatMap { classification ->
+        classification.categories.map { category ->
+            Classification(category.index, category.score)
+        }
     }
 }
 

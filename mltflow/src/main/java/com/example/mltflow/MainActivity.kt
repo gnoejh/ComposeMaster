@@ -20,13 +20,16 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -64,11 +67,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
@@ -77,6 +84,7 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
+import com.google.mlkit.vision.face.FaceLandmark
 import com.google.mlkit.vision.objects.ObjectDetection
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
 import kotlinx.coroutines.Dispatchers
@@ -88,6 +96,8 @@ import org.tensorflow.lite.task.vision.classifier.Classifications
 import org.tensorflow.lite.task.vision.classifier.ImageClassifier
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.math.roundToInt
+import kotlin.random.Random
 import androidx.camera.core.Preview as CameraPreview
 
 // Enum class defining ML feature types
@@ -124,7 +134,7 @@ fun MLTensorFlowApp() {
                     IconButton(onClick = { menuExpanded = true }) {
                         Icon(Icons.Default.Menu, contentDescription = "Menu")
                     }
-                    
+
                     DropdownMenu(
                         expanded = menuExpanded,
                         onDismissRequest = { menuExpanded = false }
@@ -132,7 +142,7 @@ fun MLTensorFlowApp() {
                         MLFeature.entries.forEach { feature ->
                             DropdownMenuItem(
                                 text = { Text(feature.title) },
-                                onClick = { 
+                                onClick = {
                                     currentFeature = feature
                                     menuExpanded = false
                                 }
@@ -167,18 +177,16 @@ fun WelcomeScreen() {
     ) {
         Text(
             text = "ML App using TensorFlow Lite and Jetpack Compose\n\n" +
-                   "Select a feature from the top menu",
+                    "Select a feature from the top menu",
             style = MaterialTheme.typography.bodyLarge
         )
     }
 }
 
 
-
-
-// Data class for object detection
-data class Detection(val label: String, val confidence: Float, val boundingBox: Rect)
-
+/*==============================================================
+    * Image Classification
+==============================================================*/
 // Updated Classification data class to use Int for label
 data class Classification(val label: Int, val confidence: Float)
 
@@ -235,12 +243,18 @@ fun ImageClassificationScreen() {
                             // 디버깅용 로그 추가
                             if (results.isNotEmpty() && results[0].categories.isNotEmpty()) {
                                 val firstCategory = results[0].categories[0]
-                                Log.d("ImageClassification", "First result: index=${firstCategory.index}, label=${firstCategory.label}, score=${firstCategory.score}")
+                                Log.d(
+                                    "ImageClassification",
+                                    "First result: index=${firstCategory.index}, label=${firstCategory.label}, score=${firstCategory.score}"
+                                )
                             }
                             classifications = processClassificationResults(results)
                             classifier.close()
                             classifications.forEach { classification ->
-                                Log.d("ClassificationResults", "Index: ${classification.label}, Score: ${classification.confidence}")
+                                Log.d(
+                                    "ClassificationResults",
+                                    "Index: ${classification.label}, Score: ${classification.confidence}"
+                                )
                             }
                         } else {
                             errorMessage = "Classifier could not be loaded."
@@ -303,15 +317,19 @@ fun ImageClassificationScreen() {
     }
 }
 
-private suspend fun loadBitmap(context: android.content.Context, uri: Uri): Bitmap = withContext(Dispatchers.IO) {
-    val source = ImageDecoder.createSource(context.contentResolver, uri)
-    ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
-        decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
-        decoder.isMutableRequired = true
+private suspend fun loadBitmap(context: android.content.Context, uri: Uri): Bitmap =
+    withContext(Dispatchers.IO) {
+        val source = ImageDecoder.createSource(context.contentResolver, uri)
+        ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
+            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            decoder.isMutableRequired = true
+        }
     }
-}
 
-private suspend fun createImageClassifier(context: android.content.Context, modelPath: String): ImageClassifier? = withContext(Dispatchers.IO) {
+private suspend fun createImageClassifier(
+    context: android.content.Context,
+    modelPath: String
+): ImageClassifier? = withContext(Dispatchers.IO) {
     try {
         val options = ImageClassifier.ImageClassifierOptions.builder()
             .setMaxResults(5)
@@ -323,7 +341,10 @@ private suspend fun createImageClassifier(context: android.content.Context, mode
     }
 }
 
-private suspend fun classifyImage(classifier: ImageClassifier, bitmap: Bitmap): List<Classifications> = withContext(Dispatchers.IO) {
+private suspend fun classifyImage(
+    classifier: ImageClassifier,
+    bitmap: Bitmap
+): List<Classifications> = withContext(Dispatchers.IO) {
     val tensorImage = TensorImage.fromBitmap(bitmap)
     classifier.classify(tensorImage)
 }
@@ -335,6 +356,13 @@ private fun processClassificationResults(results: List<Classifications>): List<C
         }
     }
 }
+
+/*==============================================================
+    * Object Detection
+==============================================================*/
+
+// Data class for object detection
+data class Detection(val label: String, val confidence: Float, val boundingBox: Rect)
 
 @androidx.annotation.OptIn(ExperimentalGetImage::class)
 @Composable
@@ -410,6 +438,8 @@ fun ObjectDetectionScreen() {
 
                                     objectDetector.process(image)
                                         .addOnSuccessListener { detectedObjects ->
+                                            // Log detected objects
+                                            Log.d("ObjectDetection", "Detected objects: $detectedObjects")
                                             detections = detectedObjects.map { obj ->
                                                 val label = if (obj.labels.isNotEmpty()) {
                                                     obj.labels[0].text
@@ -537,7 +567,8 @@ fun ObjectDetectionScreen() {
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = errorMessage ?: "Camera permission is required for real-time object detection",
+                    text = errorMessage
+                        ?: "Camera permission is required for real-time object detection",
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.error
                 )
@@ -551,6 +582,10 @@ fun ObjectDetectionScreen() {
         }
     }
 }
+
+/*==============================================================
+    * Face Recognition
+==============================================================*/
 
 @Composable
 fun FaceRecognitionScreen() {
@@ -709,18 +744,48 @@ fun FaceRecognitionScreen() {
                             .padding(vertical = 4.dp),
                         shape = RoundedCornerShape(8.dp)
                     ) {
+                        // Log.d for face
+                        Log.d("FaceRecognition", "Face ID: ${face.trackingId}")
+                        Log.d("FaceRecognition", "Face bounding box: ${face.boundingBox}")
+                        Log.d("FaceRecognition", "Face landmarks: ${face.allLandmarks}")
+                        Log.d("FaceRecognition", "Face classification: ${face.smilingProbability}")
+                        Log.d("FaceRecognition", "Face angles: ${face.headEulerAngleX}, ${face.headEulerAngleY}, ${face.headEulerAngleZ}")
+                        Log.d("FaceRecognition", "Face contours: ${face.allContours}")
+                        Log.d("FaceRecognition", "Face: $face")
+
+
                         Column(modifier = Modifier.padding(16.dp)) {
                             face.trackingId?.let {
                                 Text("Face ID: $it")
                             }
 
+                            // Display classification results
                             Text("Smile probability: ${(face.smilingProbability?.times(100) ?: 0f).toInt()}%")
-                            Text("Left eye open probability: ${(face.leftEyeOpenProbability?.times(100) ?: 0f).toInt()}%")
-                            Text("Right eye open probability: ${(face.rightEyeOpenProbability?.times(100) ?: 0f).toInt()}%")
+                            Text(
+                                "Left eye open probability: ${
+                                    (face.leftEyeOpenProbability?.times(
+                                        100
+                                    ) ?: 0f).toInt()
+                                }%"
+                            )
+                            Text(
+                                "Right eye open probability: ${
+                                    (face.rightEyeOpenProbability?.times(
+                                        100
+                                    ) ?: 0f).toInt()
+                                }%"
+                            )
 
                             Text("Face angle X: ${face.headEulerAngleX}°")
                             Text("Face angle Y: ${face.headEulerAngleY}°")
                             Text("Face angle Z: ${face.headEulerAngleZ}°")
+
+                            // Display landmarks if available
+                            face.allLandmarks.forEach { landmark ->
+                                Text("${landmark.landmarkType}: ${landmark.position}")
+                            }
+                            // Plot all landmarks on the actual image
+
                         }
                     }
                 }
@@ -748,6 +813,10 @@ fun FaceRecognitionScreen() {
     }
 }
 
+
+/*==============================================================
+    * Preview
+==============================================================*/
 @Preview(showBackground = true)
 @Composable
 fun MLTensorFlowAppPreview() {

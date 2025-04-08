@@ -10,6 +10,76 @@ Jetpack Compose, Android's modern toolkit for building native UI, can be seamles
 - Android Studio Arctic Fox or newer
 - Understanding of basic machine learning concepts
 
+## Useful Sites
+- [mobilnet](https://www.tensorflow.org/api_docs/python/tf/keras/applications/MobileNet) 
+- [kaggle](https://www.kaggle.com/code/gaur128/creating-tflite-model)
+- [TensorFlow Lite](https://ai.google.dev/edge/litert)
+- [ML Kit](https://developers.google.com/ml-kit)
+
+# TFLite and LiteRT
+
+This section explains the roles and official sites for **TensorFlow Lite (TFLite)** and **LiteRT**—two key components for integrating machine learning features into mobile and edge applications.
+
+---
+
+## TensorFlow Lite (TFLite)
+
+**What It Is:**  
+TensorFlow Lite is the lightweight version of TensorFlow designed specifically for mobile and embedded devices. It enables on-device machine learning inference without relying on a server, thereby reducing latency and preserving privacy. It comes with tools to optimize models, such as quantization and pruning, and supports hardware accelerators like GPUs or specialized AI chips.
+
+**Key Features:**
+
+- **Optimized for Mobile and Embedded Devices:**  
+  Designed to work efficiently on low-resource devices, ensuring minimal latency for tasks such as image classification, object detection, and more.
+
+- **Model Optimization:**  
+  Allows developers to convert full TensorFlow models into a compact, efficient format, which is crucial for running deep learning models on smartphones and IoT devices.
+
+- **Hardware Acceleration:**  
+  Supports hardware accelerators (e.g., GPUs and NPUs) to speed up model inference.
+
+- **Robust Ecosystem:**  
+  Offers extensive documentation, community support, and regular updates, making it a popular choice for deploying AI models on mobile platforms.
+
+**Official Website:**  
+Visit [TensorFlow Lite](https://www.tensorflow.org/lite) for comprehensive guides, documentation, and updates.
+
+---
+
+## LiteRT
+
+**What It Is:**  
+LiteRT (Lite Runtime) is a runtime module focused on providing optimized execution of machine learning models on edge devices. While similar in concept to TFLite—targeting efficient on-device inference—LiteRT is part of a broader edge AI toolset that incorporates additional low-level optimizations and integrations with edge-specific software.
+
+**Key Features:**
+
+- **Edge Optimization:**  
+  Specifically designed to enhance performance for real-time tasks on edge devices with a strong focus on low-level runtime improvements, ideal for applications where performance and power efficiency are critical.
+
+- **Specialized Use Cases:**  
+  While TensorFlow Lite is popular for mobile app development, LiteRT might be more suitable for specialized edge scenarios, such as industrial IoT or advanced robotics, where every millisecond of inference matters.
+
+- **Integration with Google’s Edge AI Solutions:**  
+  Positioned within Google's suite of edge AI tools, offering tight integration with other edge modules and hardware accelerators.
+
+**Official Website:**  
+For detailed documentation, examples, and updates, check out the dedicated page at [LiteRT](https://ai.google.dev/edge/litert).
+
+---
+
+## Summary
+
+- **TensorFlow Lite (TFLite):**
+   - A framework for deploying machine learning models on mobile and embedded devices.
+   - Official website: [https://www.tensorflow.org/lite](https://www.tensorflow.org/lite)
+
+- **LiteRT:**
+   - An optimized runtime for executing ML models on edge devices with a focus on real-time performance and low-level hardware integration.
+   - Official website: [https://ai.google.dev/edge/litert](https://ai.google.dev/edge/litert)
+
+By understanding these distinctions, developers can choose the right tool based on their specific application requirements, whether it’s for a general-purpose mobile solution (TFLite) or a highly optimized runtime for edge computing (LiteRT).
+
+
 ## Setting Up Your Project
 
 First, add the necessary dependencies to your `build.gradle` file:

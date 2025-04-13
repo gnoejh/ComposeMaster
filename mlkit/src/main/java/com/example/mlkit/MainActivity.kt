@@ -16,11 +16,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
@@ -45,6 +48,10 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.mlkit.ui.theme.ComposeMasterTheme
+import com.google.mlkit.common.model.DownloadConditions
+import com.google.mlkit.nl.translate.TranslateLanguage
+import com.google.mlkit.nl.translate.Translation
+import com.google.mlkit.nl.translate.TranslatorOptions
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
@@ -415,12 +422,116 @@ fun EntityExtractionScreen() {
     }
 }
 
+
 @Composable
 fun TranslationScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var recognizedText by remember { mutableStateOf<String?>(null) }
+    var translatedText by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        imageUri = uri
+        if (uri != null) {
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
+            imageBitmap = ImageDecoder.decodeBitmap(source)
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()), // Make the Column scrollable
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Translation Screen")
+        Button(onClick = { launcher.launch("image/*") }) {
+            Text("Select Image")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        imageBitmap?.let { bitmap ->
+            Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = "Selected Image",
+                modifier = Modifier.size(200.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(onClick = {
+                val image = InputImage.fromBitmap(bitmap, 0)
+                val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                recognizer.process(image)
+                    .addOnSuccessListener { visionText ->
+                        recognizedText = visionText.text
+                    }
+                    .addOnFailureListener { e ->
+                        println("Error recognizing text: $e")
+                    }
+            }) {
+                Text("Recognize Text")
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        recognizedText?.let { text ->
+            Box(
+                modifier = Modifier
+                    .height(100.dp)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text(
+                    text = "Recognized Text:\n$text",
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(onClick = {
+                // Translate text to Spanish
+                val options = TranslatorOptions.Builder()
+                    .setSourceLanguage(TranslateLanguage.ENGLISH)
+                    .setTargetLanguage(TranslateLanguage.SPANISH)
+                    .build()
+                val translator = Translation.getClient(options)
+                val conditions = DownloadConditions.Builder()
+                    .requireWifi()
+                    .build()
+                translator.downloadModelIfNeeded(conditions)
+                    .addOnSuccessListener {
+                        translator.translate(text)
+                            .addOnSuccessListener { translated ->
+                                translatedText = translated
+                            }
+                            .addOnFailureListener { e ->
+                                println("Error translating text: $e")
+                            }
+                    }
+                    .addOnFailureListener { e ->
+                        println("Error downloading translation model: $e")
+                    }
+            }) {
+                Text("Translate to Spanish")
+            }
+            Spacer(modifier = Modifier.height(16.dp)) // Moved inside this scope.
+            // Check if translatedText is not null and show it only then.
+            if (translatedText != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    Text(
+                        text = "Translated Text:\n$translatedText",
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
+        }
     }
 }

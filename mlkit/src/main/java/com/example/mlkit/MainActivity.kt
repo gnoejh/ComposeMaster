@@ -1,5 +1,6 @@
 package com.example.mlkit
 
+
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
@@ -45,8 +46,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.mlkit.ui.theme.ComposeMasterTheme
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.face.Face
+import com.google.mlkit.vision.face.FaceDetection
+import com.google.mlkit.vision.face.FaceDetectorOptions
 import com.google.mlkit.vision.label.ImageLabeling
 import com.google.mlkit.vision.label.defaults.ImageLabelerOptions
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -220,13 +225,82 @@ fun ObjectDetectionScreen() {
     }
 }
 
+
 @Composable
 fun FaceDetectionScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var faces by remember { mutableStateOf<List<Face>>(emptyList()) }
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        imageUri = uri
+        if (uri != null) {
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
+            imageBitmap = ImageDecoder.decodeBitmap(source)
+        }
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Face Detection Screen")
+        Button(onClick = { launcher.launch("image/*") }) {
+            Text("Select Image")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        imageBitmap?.let { bitmap ->
+            Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = "Selected Image",
+                modifier = Modifier.size(250.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = {
+                val image = InputImage.fromBitmap(bitmap, 0)
+                val options = FaceDetectorOptions.Builder()
+                    .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+                    .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
+                    .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
+                    .build()
+                val detector = FaceDetection.getClient(options)
+                detector.process(image)
+                    .addOnSuccessListener { detectedFaces ->
+                        faces = detectedFaces as List<Face>
+                    }
+                    .addOnFailureListener { e ->
+                        println("Error detecting faces: $e")
+                    }
+            }) {
+                Text("Detect Faces")
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            if (faces.isNotEmpty()) {
+                LazyColumn {
+                    items(faces) { face ->
+                        Text(
+                            text = "Face: ${face.boundingBox}",
+                            modifier = Modifier.padding(8.dp)
+                        )
+                        face.leftEyeOpenProbability?.let { probability ->
+                            Text(
+                                text = "Left eye open probability: $probability",
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                        face.rightEyeOpenProbability?.let { probability ->
+                            Text(
+                                text = "Right eye open probability: $probability",
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

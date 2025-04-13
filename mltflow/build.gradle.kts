@@ -71,8 +71,8 @@ dependencies {
     }
     
     // ML Kit (ML Kit는 자체적으로 TensorFlow Lite 종속성을 포함하고 있음)
-    implementation(libs.face.detection)
-    implementation(libs.object1.detection)
+    implementation(libs.mlkit.face.detection)
+    implementation(libs.mlkit.objects.detection)
     
     // TensorFlow Lite Task Library - 선택적으로 추가
     implementation("org.tensorflow:tensorflow-lite-task-vision:0.4.4") {

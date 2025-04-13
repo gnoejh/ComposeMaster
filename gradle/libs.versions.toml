@@ -96,18 +96,17 @@ litert-support-api = { group = "com.google.ai.edge.litert", name = "litert-suppo
 material3 = { module = "androidx.compose.material3:material3" }
 
 # MLKit
-face-detection = { module = "com.google.mlkit:face-detection", version.ref = "faceDetection" }
 mlkit-barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "mlkitBarcodeScanning" }
 mlkit-digital-ink-recognition = { module = "com.google.mlkit:digital-ink-recognition", version.ref = "mlkitDigitalInkRecognition" }
 mlkit-entity-extraction = { module = "com.google.mlkit:entity-extraction", version.ref = "mlkitEntityExtraction" }
 mlkit-face-detection = { module = "com.google.mlkit:face-detection", version.ref = "mlkitFaceDetection" }
 mlkit-image-labeling = { module = "com.google.mlkit:image-labeling", version.ref = "mlkitImageLabeling" }
-mlkit-object-detection = { module = "com.google.mlkit:object-detection", version.ref = "mlkitObjectDetection" }
+mlkit-language-id = { module = "com.google.mlkit:language-id", version.ref = "mlkit" }
+mlkit-objects-detection = { module = "com.google.mlkit:object-detection", version.ref = "mlkitObjectDetection" }
 mlkit-pose-detection = { module = "com.google.mlkit:pose-detection", version.ref = "mlkitPoseDetection" }
 mlkit-selfie-segmentation = { module = "com.google.mlkit:segmentation-selfie", version.ref = "mlkitSelfieSegmentation" }
 mlkit-text-recognition = { module = "com.google.mlkit:text-recognition", version.ref = "mlkitTextRecognition" }
 mlkit-translation = { module = "com.google.mlkit:translate", version.ref = "mlkitTranslation" }
-object1-detection = { module = "com.google.mlkit:object-detection", version.ref = "objectDetection" }
 
 # TensorFlow
 tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflowLite" }
@@ -140,7 +139,7 @@ compose = [
 ]
 mlkit = [
     "mlkit-image-labeling",
-    "mlkit-object-detection",
+    "mlkit-objects-detection",
     "mlkit-face-detection",
     "mlkit-text-recognition",
     "mlkit-barcode-scanning",

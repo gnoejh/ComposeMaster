@@ -51,6 +51,8 @@ import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
 import com.google.mlkit.vision.label.ImageLabeling
 import com.google.mlkit.vision.label.defaults.ImageLabelerOptions
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 
 
 class MainActivity : ComponentActivity() {
@@ -304,15 +306,64 @@ fun FaceDetectionScreen() {
     }
 }
 
+
 @Composable
 fun TextRecognitionScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var recognizedText by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        imageUri = uri
+        if (uri != null) {
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
+            imageBitmap = ImageDecoder.decodeBitmap(source)
+        }
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Text Recognition Screen")
+        Button(onClick = { launcher.launch("image/*") }) {
+            Text("Select Image")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        imageBitmap?.let { bitmap ->
+            Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = "Selected Image",
+                modifier = Modifier.size(250.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = {
+                val image = InputImage.fromBitmap(bitmap, 0)
+                val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                recognizer.process(image)
+                    .addOnSuccessListener { visionText ->
+                        recognizedText = visionText.text
+                    }
+                    .addOnFailureListener { e ->
+                        println("Error recognizing text: $e")
+                    }
+            }) {
+                Text("Recognize Text")
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            recognizedText?.let { text ->
+                Text(
+                    text = "Recognized Text:\n$text",
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        }
     }
 }
+
 
 @Composable
 fun BarcodeScanningScreen() {

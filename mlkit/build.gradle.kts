@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.coil.compose)
     implementation(libs.glance.appwidget)
+    implementation(libs.mlkit.image.labeling)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

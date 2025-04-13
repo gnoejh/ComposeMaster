@@ -1,6 +1,5 @@
 [versions]
 agp = "8.9.1"
-androidxCore = "1.12.0"
 androidxLifecycle = "2.8.7"
 cameraCore = "1.4.2"
 coilCompose = "2.7.0"

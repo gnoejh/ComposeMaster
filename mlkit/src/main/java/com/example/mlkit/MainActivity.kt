@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -306,6 +307,12 @@ fun FaceDetectionScreen() {
                                 modifier = Modifier.padding(8.dp)
                             )
                         }
+                        face.smilingProbability?.let { probability ->
+                            Text(
+                                text = "Smiling probability: $probability",
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -508,18 +515,18 @@ fun TranslationScreen() {
                                 translatedText = translated
                             }
                             .addOnFailureListener { e ->
-                                println("Error translating text: $e")
+                                Log.e("Translation Error", "Error translating text: $e")
                             }
                     }
                     .addOnFailureListener { e ->
-                        println("Error downloading translation model: $e")
+                        Log.e("Download Error", "Error downloading translation model: $e")
                     }
             }) {
                 Text("Translate to Spanish")
             }
             Spacer(modifier = Modifier.height(16.dp)) // Moved inside this scope.
             // Check if translatedText is not null and show it only then.
-            if (translatedText != null) {
+            translatedText?.let {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -530,6 +537,7 @@ fun TranslationScreen() {
                         text = "Translated Text:\n$translatedText",
                         modifier = Modifier.padding(8.dp)
                     )
+                    Log.d("Translated Text",    translatedText.toString())
                 }
             }
         }

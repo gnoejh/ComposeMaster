@@ -17,7 +17,7 @@ kotlinxCoroutinesPlayServices = "1.10.2"
 lifecycleRuntimeKtx = "2.8.7"
 lifecycleViewmodelCompose = "2.8.7"
 litertSupportApi = "1.2.0"
-media3Exoplayer = "1.6.0"
+media3Exoplayer = "1.6.1"
 mlkit = "17.0.6"
 mlkitBarcodeScanning = "17.3.0"
 mlkitDigitalInkRecognition = "18.1.0"
@@ -25,7 +25,8 @@ mlkitEntityExtraction = "16.0.0-beta5"
 mlkitFaceDetection = "16.1.7"
 mlkitImageLabeling = "17.0.9"
 mlkitObjectDetection = "17.0.2"
-mlkitPoseDetection = "17.0.0"
+mlkitPoseDetection = "18.0.0-beta5"
+mlkitPoseDetectionAccurate = "18.0.0-beta5"
 mlkitSelfieSegmentation = "16.0.0-beta6"
 mlkitTextRecognition = "16.0.1"
 mlkitTranslation = "17.0.3"
@@ -33,6 +34,7 @@ objectDetection = "17.0.2"
 tensorflowLite = "2.15.0"
 tensorflowLiteTaskVision = "0.4.4"
 uiViewbinding = "1.7.8"
+runtime = "1.0.0-alpha03"
 
 [libraries]
 # AndroidX Core
@@ -104,6 +106,7 @@ mlkit-image-labeling = { module = "com.google.mlkit:image-labeling", version.ref
 mlkit-language-id = { module = "com.google.mlkit:language-id", version.ref = "mlkit" }
 mlkit-objects-detection = { module = "com.google.mlkit:object-detection", version.ref = "mlkitObjectDetection" }
 mlkit-pose-detection = { module = "com.google.mlkit:pose-detection", version.ref = "mlkitPoseDetection" }
+mlkit-pose-detection-accurate = { module = "com.google.mlkit:pose-detection-accurate", version.ref = "mlkitPoseDetectionAccurate" }
 mlkit-selfie-segmentation = { module = "com.google.mlkit:segmentation-selfie", version.ref = "mlkitSelfieSegmentation" }
 mlkit-text-recognition = { module = "com.google.mlkit:text-recognition", version.ref = "mlkitTextRecognition" }
 mlkit-translation = { module = "com.google.mlkit:translate", version.ref = "mlkitTranslation" }
@@ -123,6 +126,7 @@ ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
 ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+androidx-runtime = { group = "androidx.xr.runtime", name = "runtime", version.ref = "runtime" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

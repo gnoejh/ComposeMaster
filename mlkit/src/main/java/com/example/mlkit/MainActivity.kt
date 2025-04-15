@@ -11,6 +11,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -45,7 +47,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.mlkit.ui.theme.ComposeMasterTheme
@@ -59,8 +65,15 @@ import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
 import com.google.mlkit.vision.label.ImageLabeling
 import com.google.mlkit.vision.label.defaults.ImageLabelerOptions
+import com.google.mlkit.vision.objects.ObjectDetection
+import com.google.mlkit.vision.objects.ObjectDetector
+import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 
 
 class MainActivity : ComponentActivity() {
@@ -225,16 +238,167 @@ fun ImageLabelingScreen() {
     }
 }
 
+//@Composable
+//fun ObjectDetectionScreen() {
+//    var imageUri by remember { mutableStateOf<Uri?>(null) }
+//    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+//    var detectedObjects by remember { mutableStateOf<List<com.google.mlkit.vision.objects.DetectedObject>>(emptyList()) }
+//    val context = LocalContext.current
+//    val launcher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.GetContent()
+//    ) { uri: Uri? ->
+//        imageUri = uri
+//        if (uri != null) {
+//            val source = ImageDecoder.createSource(context.contentResolver, uri)
+//            imageBitmap = ImageDecoder.decodeBitmap(source)
+//        }
+//    }
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .padding(16.dp),
+//        horizontalAlignment = Alignment.CenterHorizontally,
+//        verticalArrangement = Arrangement.Center
+//    ) {
+//        Button(onClick = { launcher.launch("image/*") }) {
+//            Text("Select Image")
+//        }
+//        Spacer(modifier = Modifier.height(16.dp))
+//        imageBitmap?.let { bitmap ->
+//            Image(
+//                bitmap = bitmap.asImageBitmap(),
+//                contentDescription = "Selected Image",
+//                modifier = Modifier.size(250.dp)
+//            )
+//            Spacer(modifier = Modifier.height(16.dp))
+//            Button(onClick = {
+//                val image = InputImage.fromBitmap(bitmap, 0)
+//                val options = ObjectDetectorOptions.Builder()
+//                    .setDetectorMode(ObjectDetectorOptions.SINGLE_IMAGE_MODE)
+//                    .enableClassification()
+//                    .build()
+//                val objectDetector = ObjectDetection.getClient(options)
+//                objectDetector.process(image)
+//                    .addOnSuccessListener { detectedObjectsList ->
+//                        detectedObjects = detectedObjectsList
+//                    }
+//                    .addOnFailureListener { e ->
+//                        println("Error detecting objects: $e")
+//                    }
+//            }) {
+//                Text("Detect Objects")
+//            }
+//            Spacer(modifier = Modifier.height(16.dp))
+//            if (detectedObjects.isNotEmpty()) {
+//                LazyColumn {
+//                    items(detectedObjects) { detectedObject ->
+//                        Column(modifier = Modifier.padding(8.dp)) {
+//                            Text(text = "Object Bounding Box: ${detectedObject.boundingBox}")
+//                            detectedObject.labels.forEach { label ->
+//                                Text(text = "Label: ${label.text}, Confidence: ${label.confidence}")
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
+
+
 @Composable
 fun ObjectDetectionScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var detectedObjects by remember { mutableStateOf<List<com.google.mlkit.vision.objects.DetectedObject>>(emptyList()) }
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        imageUri = uri
+        if (uri != null) {
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
+            imageBitmap = ImageDecoder.decodeBitmap(source)
+        }
+    }
+    val textMeasurer = rememberTextMeasurer() // Initialize textMeasurer here
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Object Detection Screen")
+        Button(onClick = { launcher.launch("image/*") }) {
+            Text("Select Image")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        imageBitmap?.let { bitmap ->
+            Box(modifier = Modifier.size(250.dp)) {
+                Image(
+                    bitmap = bitmap.asImageBitmap(),
+                    contentDescription = "Selected Image",
+                    modifier = Modifier.fillMaxSize()
+                )
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val scaleX = size.width / bitmap.width
+                    val scaleY = size.height / bitmap.height
+                    detectedObjects.forEach { detectedObject ->
+                        val rect = detectedObject.boundingBox
+                        drawRect(
+                            color = Color.Red,
+                            topLeft = Offset(rect.left * scaleX, rect.top * scaleY),
+                            size = Size(rect.width() * scaleX, rect.height() * scaleY),
+                            style = Stroke(width = 2.dp.toPx())
+                        )
+                        detectedObject.labels.forEach { label ->
+                            drawText(
+                                textMeasurer = textMeasurer,
+                                text = "${label.text}: ${label.confidence.format(2)}",
+                                topLeft = Offset(rect.left * scaleX, (rect.top * scaleY) - 20f),
+                                style = TextStyle(color = Color.White)
+                            )
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = {
+                val image = InputImage.fromBitmap(bitmap, 0)
+                val options = ObjectDetectorOptions.Builder()
+                    .setDetectorMode(ObjectDetectorOptions.SINGLE_IMAGE_MODE)
+                    .enableClassification()
+                    .build()
+                val objectDetector = ObjectDetection.getClient(options)
+                objectDetector.process(image)
+                    .addOnSuccessListener { detectedObjectsList ->
+                        detectedObjects = detectedObjectsList
+                    }
+                    .addOnFailureListener { e ->
+                        println("Error detecting objects: $e")
+                    }
+            }) {
+                Text("Detect Objects")
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            if (detectedObjects.isNotEmpty()) {
+                LazyColumn {
+                    items(detectedObjects) { detectedObject ->
+                        Column(modifier = Modifier.padding(8.dp)) {
+                            Text(text = "Object Bounding Box: ${detectedObject.boundingBox}")
+                            detectedObject.labels.forEach { label ->
+                                Text(text = "Label: ${label.text}, Confidence: ${label.confidence}")
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
+fun Float.format(digits: Int) = "%.${digits}f".format(this)
 
 @Composable
 fun FaceDetectionScreen() {

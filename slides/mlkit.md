@@ -34,19 +34,41 @@ Other approaches to integrating ML into mobile apps include frameworks like Tens
 - **Object Detection**: Detect and track objects for AR experiences, inventory management, or gaming.
 - **Pose Detection**: Analyze human poses for fitness apps, motion tracking, or sports analytics.
 
-## ML Kit APIs Overview
+## ML Kit APIs by Category
 
-| API                | Description                                      | On-device | Cloud-based |
-|--------------------|--------------------------------------------------|-----------|-------------|
-| Text Recognition   | Extracts text from images.                      | Yes       | Yes         |
-| Face Detection     | Detects faces and facial landmarks.             | Yes       | No          |
-| Barcode Scanning   | Scans and decodes barcodes.                     | Yes       | No          |
-| Image Labeling     | Identifies objects in images.                   | Yes       | Yes         |
-| Language ID        | Detects the language of a given text.           | Yes       | No          |
-| Translation        | Translates text between languages.              | Yes       | Yes         |
-| Smart Reply        | Suggests contextual replies for conversations.  | Yes       | No          |
-| Object Detection   | Detects and tracks objects in images or video.  | Yes       | No          |
-| Pose Detection     | Identifies human body poses and landmarks.      | Yes       | No          |
+| API                | Description                                      | On-device | Cloud-based | Camera Support | Category         |
+|--------------------|--------------------------------------------------|-----------|-------------|----------------|------------------|
+| Text Recognition   | Extracts text from images.                      | Yes       | Yes         | Yes            | Vision           |
+| Face Detection     | Detects faces and facial landmarks.             | Yes       | No          | Yes            | Vision           |
+| Barcode Scanning   | Scans and decodes barcodes.                     | Yes       | No          | Yes            | Vision           |
+| Image Labeling     | Identifies objects in images.                   | Yes       | Yes         | Yes            | Vision           |
+| Object Detection   | Detects and tracks objects in images or video.  | Yes       | No          | Yes            | Vision           |
+| Pose Detection     | Identifies human body poses and landmarks.      | Yes       | No          | Yes            | Vision           |
+| Selfie Segmentation| Segments the background from a selfie image.    | Yes       | No          | Yes            | Vision           |
+| Digital Ink        | Recognizes handwritten text and shapes.         | Yes       | No          | No             | Vision           |
+| Language ID        | Detects the language of a given text.           | Yes       | No          | No             | Natural Language |
+| Translation        | Translates text between languages.              | Yes       | Yes         | No             | Natural Language |
+| Smart Reply        | Suggests contextual replies for conversations.  | Yes       | No          | No             | Natural Language |
+| Entity Extraction  | Extracts structured data from text.             | Yes       | No          | No             | Natural Language |
+| Custom Models      | Integrates custom ML models into your app.      | Yes       | No          | Yes            | Other            |
+
+## ML Kit APIs by Camera Support
+
+| API                | Description                                      | On-device | Cloud-based | Camera Support | Category         |
+|--------------------|--------------------------------------------------|-----------|-------------|----------------|------------------|
+| Text Recognition   | Extracts text from images.                      | Yes       | Yes         | Yes            | Vision           |
+| Face Detection     | Detects faces and facial landmarks.             | Yes       | No          | Yes            | Vision           |
+| Barcode Scanning   | Scans and decodes barcodes.                     | Yes       | No          | Yes            | Vision           |
+| Image Labeling     | Identifies objects in images.                   | Yes       | Yes         | Yes            | Vision           |
+| Object Detection   | Detects and tracks objects in images or video.  | Yes       | No          | Yes            | Vision           |
+| Pose Detection     | Identifies human body poses and landmarks.      | Yes       | No          | Yes            | Vision           |
+| Selfie Segmentation| Segments the background from a selfie image.    | Yes       | No          | Yes            | Vision           |
+| Custom Models      | Integrates custom ML models into your app.      | Yes       | No          | Yes            | Other            |
+| Digital Ink        | Recognizes handwritten text and shapes.         | Yes       | No          | No             | Vision           |
+| Language ID        | Detects the language of a given text.           | Yes       | No          | No             | Natural Language |
+| Translation        | Translates text between languages.              | Yes       | Yes         | No             | Natural Language |
+| Smart Reply        | Suggests contextual replies for conversations.  | Yes       | No          | No             | Natural Language |
+| Entity Extraction  | Extracts structured data from text.             | Yes       | No          | No             | Natural Language |
 
 ### API Templates
 

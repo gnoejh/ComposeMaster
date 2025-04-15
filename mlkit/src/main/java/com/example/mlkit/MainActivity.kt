@@ -59,7 +59,6 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.data.position
 import androidx.compose.ui.unit.dp
 import androidx.xr.runtime.math.Pose
-//import androidx.privacysandbox.tools.core.generator.build
 import com.example.mlkit.ui.theme.ComposeMasterTheme
 import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.nl.translate.TranslateLanguage
@@ -184,6 +183,7 @@ fun WelcomeScreen() {
 fun ImageLabelingScreen() {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var isLabelingDone by remember { mutableStateOf(false) }
     var labels by remember { mutableStateOf<List<Pair<String, Float>>>(emptyList()) }
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
@@ -213,20 +213,25 @@ fun ImageLabelingScreen() {
                 modifier = Modifier.size(250.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = {
-                val image = InputImage.fromBitmap(bitmap, 0)
-                val labeler = ImageLabeling.getClient(ImageLabelerOptions.DEFAULT_OPTIONS)
-                labeler.process(image)
-                    .addOnSuccessListener { imageLabels ->
-                        labels = imageLabels.map {
-                            Pair(it.text, it.confidence)
+
+            // Button to trigger image labeling
+            if (!isLabelingDone) {
+                Button(onClick = {
+                    val image = InputImage.fromBitmap(bitmap, 0)
+                    val labeler = ImageLabeling.getClient(ImageLabelerOptions.DEFAULT_OPTIONS)
+                    labeler.process(image)
+                        .addOnSuccessListener { imageLabels ->
+                            labels = imageLabels.map {
+                                Pair(it.text, it.confidence)
+                            }
+                            isLabelingDone = true
                         }
-                    }
-                    .addOnFailureListener { e ->
-                        println("Error labeling image: $e")
-                    }
-            }) {
-                Text("Label Image")
+                        .addOnFailureListener { e ->
+                            println("Error labeling image: $e")
+                        }
+                }) {
+                    Text("Label Image")
+                }
             }
             Spacer(modifier = Modifier.height(16.dp))
             if (labels.isNotEmpty()) {
@@ -249,6 +254,7 @@ fun ObjectDetectionScreen() {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var detectedObjects by remember { mutableStateOf<List<com.google.mlkit.vision.objects.DetectedObject>>(emptyList()) }
+    var isObjectDetectionDone by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -302,22 +308,25 @@ fun ObjectDetectionScreen() {
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = {
-                val image = InputImage.fromBitmap(bitmap, 0)
-                val options = ObjectDetectorOptions.Builder()
-                    .setDetectorMode(ObjectDetectorOptions.SINGLE_IMAGE_MODE)
-                    .enableClassification()
-                    .build()
-                val objectDetector = ObjectDetection.getClient(options)
-                objectDetector.process(image)
-                    .addOnSuccessListener { detectedObjectsList ->
-                        detectedObjects = detectedObjectsList
-                    }
-                    .addOnFailureListener { e ->
-                        println("Error detecting objects: $e")
-                    }
-            }) {
-                Text("Detect Objects")
+            if (!isObjectDetectionDone) {
+                Button(onClick = {
+                    val image = InputImage.fromBitmap(bitmap, 0)
+                    val options = ObjectDetectorOptions.Builder()
+                        .setDetectorMode(ObjectDetectorOptions.SINGLE_IMAGE_MODE)
+                        .enableClassification()
+                        .build()
+                    val objectDetector = ObjectDetection.getClient(options)
+                    objectDetector.process(image)
+                        .addOnSuccessListener { detectedObjectsList ->
+                            detectedObjects = detectedObjectsList
+                            isObjectDetectionDone = true
+                        }
+                        .addOnFailureListener { e ->
+                            println("Error detecting objects: $e")
+                        }
+                }) {
+                    Text("Detect Objects")
+                }
             }
             Spacer(modifier = Modifier.height(16.dp))
             if (detectedObjects.isNotEmpty()) {
@@ -343,6 +352,7 @@ fun FaceDetectionScreen() {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var faces by remember { mutableStateOf<List<Face>>(emptyList()) }
+    var isFaceDetectionDone by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -371,23 +381,26 @@ fun FaceDetectionScreen() {
                 modifier = Modifier.size(250.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = {
-                val image = InputImage.fromBitmap(bitmap, 0)
-                val options = FaceDetectorOptions.Builder()
-                    .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
-                    .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
-                    .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
-                    .build()
-                val detector = FaceDetection.getClient(options)
-                detector.process(image)
-                    .addOnSuccessListener { detectedFaces ->
-                        faces = detectedFaces as List<Face>
-                    }
-                    .addOnFailureListener { e ->
-                        println("Error detecting faces: $e")
-                    }
-            }) {
-                Text("Detect Faces")
+            if(!isFaceDetectionDone) {
+                Button(onClick = {
+                    val image = InputImage.fromBitmap(bitmap, 0)
+                    val options = FaceDetectorOptions.Builder()
+                        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+                        .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
+                        .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
+                        .build()
+                    val detector = FaceDetection.getClient(options)
+                    detector.process(image)
+                        .addOnSuccessListener { detectedFaces ->
+                            faces = detectedFaces as List<Face>
+                            isFaceDetectionDone = true
+                        }
+                        .addOnFailureListener { e ->
+                            println("Error detecting faces: $e")
+                        }
+                }) {
+                    Text("Detect Faces")
+                }
             }
             Spacer(modifier = Modifier.height(16.dp))
             if (faces.isNotEmpty()) {
@@ -428,6 +441,7 @@ fun TextRecognitionScreen() {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var recognizedText by remember { mutableStateOf<String?>(null) }
+    var isTextRecognized by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -456,18 +470,22 @@ fun TextRecognitionScreen() {
                 modifier = Modifier.size(250.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = {
-                val image = InputImage.fromBitmap(bitmap, 0)
-                val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-                recognizer.process(image)
-                    .addOnSuccessListener { visionText ->
-                        recognizedText = visionText.text
-                    }
-                    .addOnFailureListener { e ->
-                        println("Error recognizing text: $e")
-                    }
-            }) {
-                Text("Recognize Text")
+            if (!isTextRecognized) {
+                Button(onClick = {
+                    val image = InputImage.fromBitmap(bitmap, 0)
+                    val recognizer =
+                        TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                    recognizer.process(image)
+                        .addOnSuccessListener { visionText ->
+                            recognizedText = visionText.text
+                            isTextRecognized = true
+                        }
+                        .addOnFailureListener { e ->
+                            println("Error recognizing text: $e")
+                        }
+                }) {
+                    Text("Recognize Text")
+                }
             }
             Spacer(modifier = Modifier.height(16.dp))
             recognizedText?.let { text ->
@@ -496,6 +514,7 @@ fun PoseDetectionScreen() {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var poseLandmarks by remember { mutableStateOf<List<PoseLandmark>>(emptyList()) }
+    var isPoseDetectionDone by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -542,28 +561,31 @@ fun PoseDetectionScreen() {
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = {
-                val image = InputImage.fromBitmap(bitmap, 0)
+            if (!isPoseDetectionDone) {
+                Button(onClick = {
+                    val image = InputImage.fromBitmap(bitmap, 0)
 
-                // For accurate model
-                val options = AccuratePoseDetectorOptions.Builder()
-                    .setDetectorMode(AccuratePoseDetectorOptions.SINGLE_IMAGE_MODE)
-                    .build()
-                // For fast model
-                // val options = PoseDetectorOptions.Builder()
-                //       .setDetectorMode(PoseDetectorOptions.SINGLE_IMAGE_MODE)
-                //       .build()
+                    // For accurate model
+                    val options = AccuratePoseDetectorOptions.Builder()
+                        .setDetectorMode(AccuratePoseDetectorOptions.SINGLE_IMAGE_MODE)
+                        .build()
+                    // For fast model
+                    // val options = PoseDetectorOptions.Builder()
+                    //       .setDetectorMode(PoseDetectorOptions.SINGLE_IMAGE_MODE)
+                    //       .build()
 
-                val poseDetector = PoseDetection.getClient(options)
-                poseDetector.process(image)
-                    .addOnSuccessListener { pose ->
-                        poseLandmarks = pose.allPoseLandmarks
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("PoseDetectionScreen", "Error detecting pose: ${e.message}")
-                    }
-            }) {
-                Text("Detect Pose")
+                    val poseDetector = PoseDetection.getClient(options)
+                    poseDetector.process(image)
+                        .addOnSuccessListener { pose ->
+                            poseLandmarks = pose.allPoseLandmarks
+                            isPoseDetectionDone = true
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("PoseDetectionScreen", "Error detecting pose: ${e.message}")
+                        }
+                }) {
+                    Text("Detect Pose")
+                }
             }
         }
     }
@@ -606,6 +628,8 @@ fun TranslationScreen() {
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var recognizedText by remember { mutableStateOf<String?>(null) }
     var translatedText by remember { mutableStateOf<String?>(null) }
+    var isTextRecognized by remember { mutableStateOf(false) }
+    var isTranslationDone by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -637,20 +661,29 @@ fun TranslationScreen() {
                 modifier = Modifier.size(200.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
-
-            Button(onClick = {
-                val image = InputImage.fromBitmap(bitmap, 0)
-                val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-                recognizer.process(image)
-                    .addOnSuccessListener { visionText ->
-                        recognizedText = visionText.text
-                        Log.d("TranslationScreen", "Recognized Text: ${recognizedText}") // Log the recognized text
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("TranslationScreen", "Error recognizing text: ${e.message}") // Log error
-                    }
-            }) {
-                Text("Recognize Text")
+            if(!isTextRecognized) {
+                Button(onClick = {
+                    val image = InputImage.fromBitmap(bitmap, 0)
+                    val recognizer =
+                        TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                    recognizer.process(image)
+                        .addOnSuccessListener { visionText ->
+                            recognizedText = visionText.text
+                            Log.d(
+                                "TranslationScreen",
+                                "Recognized Text: ${recognizedText}"
+                            ) // Log the recognized text
+                            isTextRecognized = true
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e(
+                                "TranslationScreen",
+                                "Error recognizing text: ${e.message}"
+                            ) // Log error
+                        }
+                }) {
+                    Text("Recognize Text")
+                }
             }
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -668,7 +701,7 @@ fun TranslationScreen() {
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
-
+            if (!isTranslationDone){
             Button(onClick = {
                 // Translate text to Spanish
                 val options = TranslatorOptions.Builder()
@@ -688,6 +721,7 @@ fun TranslationScreen() {
                             .addOnSuccessListener { translated ->
                                 translatedText = translated
                                 Log.d("TranslationScreen", "Translated Text: $translated") // Log the translated text
+                                isTranslationDone = true
                             }
                             .addOnFailureListener { e ->
                                 Log.e("TranslationScreen", "Error translating text: ${e.message}") // Log error
@@ -699,6 +733,7 @@ fun TranslationScreen() {
             }) {
                 Text("Translate to Spanish")
             }
+                }
         }
         Spacer(modifier = Modifier.height(16.dp))
         translatedText?.let{ translated ->

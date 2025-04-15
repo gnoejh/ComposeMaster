@@ -13,7 +13,10 @@ glance = "1.1.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 kotlin = "2.1.0"
+kotlinxCoroutinesAndroid = "1.8.1"
+kotlinxCoroutinesCore = "1.8.1"
 kotlinxCoroutinesPlayServices = "1.10.2"
+kotlinxCoroutinesTasks = "1.7.1"
 lifecycleRuntimeKtx = "2.8.7"
 lifecycleViewmodelCompose = "2.8.7"
 litertSupportApi = "1.2.0"
@@ -89,9 +92,12 @@ compose-ui-toolingPreview = { module = "androidx.compose.ui:ui-tooling-preview" 
 glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glance" }
 
 # Kotlin
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutinesPlayServices" }
 
 # LitERT Support
+kotlinx-coroutines-tasks = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-tasks", version.ref = "kotlinxCoroutinesTasks" }
 litert-support-api = { group = "com.google.ai.edge.litert", name = "litert-support-api", version.ref = "litertSupportApi" }
 
 # Material Design
@@ -127,6 +133,9 @@ ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 androidx-runtime = { group = "androidx.xr.runtime", name = "runtime", version.ref = "runtime" }
+
+# privacysandbox
+androidx-privacysandbox = { module = "androidx.privacysandbox:sandbox", version.ref = "litertSupportApi" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

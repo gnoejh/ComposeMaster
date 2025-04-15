@@ -430,6 +430,7 @@ fun EntityExtractionScreen() {
 }
 
 
+
 @Composable
 fun TranslationScreen() {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
@@ -451,7 +452,7 @@ fun TranslationScreen() {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .verticalScroll(rememberScrollState()), // Make the Column scrollable
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -474,9 +475,10 @@ fun TranslationScreen() {
                 recognizer.process(image)
                     .addOnSuccessListener { visionText ->
                         recognizedText = visionText.text
+                        Log.d("TranslationScreen", "Recognized Text: ${recognizedText}") // Log the recognized text
                     }
                     .addOnFailureListener { e ->
-                        println("Error recognizing text: $e")
+                        Log.e("TranslationScreen", "Error recognizing text: ${e.message}") // Log error
                     }
             }) {
                 Text("Recognize Text")
@@ -502,44 +504,36 @@ fun TranslationScreen() {
                 // Translate text to Spanish
                 val options = TranslatorOptions.Builder()
                     .setSourceLanguage(TranslateLanguage.ENGLISH)
-                    .setTargetLanguage(TranslateLanguage.SPANISH)
+                    .setTargetLanguage(TranslateLanguage.RUSSIAN)
                     .build()
                 val translator = Translation.getClient(options)
+
+                // Download the translation model if necessary
                 val conditions = DownloadConditions.Builder()
                     .requireWifi()
                     .build()
                 translator.downloadModelIfNeeded(conditions)
                     .addOnSuccessListener {
+                        Log.d("TranslationScreen", "Translation model downloaded successfully")
                         translator.translate(text)
                             .addOnSuccessListener { translated ->
                                 translatedText = translated
+                                Log.d("TranslationScreen", "Translated Text: $translated") // Log the translated text
                             }
                             .addOnFailureListener { e ->
-                                Log.e("Translation Error", "Error translating text: $e")
+                                Log.e("TranslationScreen", "Error translating text: ${e.message}") // Log error
                             }
                     }
                     .addOnFailureListener { e ->
-                        Log.e("Download Error", "Error downloading translation model: $e")
+                        Log.e("TranslationScreen", "Error downloading translation model: ${e.message}") // Log error
                     }
             }) {
                 Text("Translate to Spanish")
             }
-            Spacer(modifier = Modifier.height(16.dp)) // Moved inside this scope.
-            // Check if translatedText is not null and show it only then.
-            translatedText?.let {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    Text(
-                        text = "Translated Text:\n$translatedText",
-                        modifier = Modifier.padding(8.dp)
-                    )
-                    Log.d("Translated Text",    translatedText.toString())
-                }
-            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        translatedText?.let{ translated ->
+            Text(text = "Translated Text: \n $translated")
         }
     }
 }

@@ -76,6 +76,9 @@ import com.google.mlkit.vision.pose.PoseDetection
 import com.google.mlkit.vision.pose.PoseDetector
 import com.google.mlkit.vision.pose.PoseLandmark
 import com.google.mlkit.vision.pose.accurate.AccuratePoseDetectorOptions
+import com.google.mlkit.vision.segmentation.SegmentationMask
+import com.google.mlkit.vision.segmentation.selfie.SelfieSegmenterOptions
+//import com.google.mlkit.vision.segmentation.selfie.SelfieSegmentation
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 
@@ -178,6 +181,29 @@ fun WelcomeScreen() {
     }
 }
 
+@Composable
+fun ImagePicker(
+    onImageSelected: (Uri) -> Unit
+) {
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { onImageSelected(it) }
+    }
+    Button(onClick = { launcher.launch("image/*") }) {
+        Text("Select Image")
+    }
+}
+
+@Composable
+fun DisplayImage(bitmap: Bitmap) {
+    Image(
+        bitmap = bitmap.asImageBitmap(),
+        contentDescription = "Selected Image",
+        modifier = Modifier.size(250.dp)
+    )
+}
 
 @Composable
 fun ImageLabelingScreen() {
@@ -186,15 +212,7 @@ fun ImageLabelingScreen() {
     var isLabelingDone by remember { mutableStateOf(false) }
     var labels by remember { mutableStateOf<List<Pair<String, Float>>>(emptyList()) }
     val context = LocalContext.current
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        imageUri = uri
-        if (uri != null) {
-            val source = ImageDecoder.createSource(context.contentResolver, uri)
-            imageBitmap = ImageDecoder.decodeBitmap(source)
-        }
-    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -202,28 +220,22 @@ fun ImageLabelingScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Button(onClick = { launcher.launch("image/*") }) {
-            Text("Select Image")
+        ImagePicker { uri ->
+            imageUri = uri
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
+            imageBitmap = ImageDecoder.decodeBitmap(source)
         }
         Spacer(modifier = Modifier.height(16.dp))
         imageBitmap?.let { bitmap ->
-            Image(
-                bitmap = bitmap.asImageBitmap(),
-                contentDescription = "Selected Image",
-                modifier = Modifier.size(250.dp)
-            )
+            DisplayImage(bitmap)
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Button to trigger image labeling
             if (!isLabelingDone) {
                 Button(onClick = {
                     val image = InputImage.fromBitmap(bitmap, 0)
                     val labeler = ImageLabeling.getClient(ImageLabelerOptions.DEFAULT_OPTIONS)
                     labeler.process(image)
                         .addOnSuccessListener { imageLabels ->
-                            labels = imageLabels.map {
-                                Pair(it.text, it.confidence)
-                            }
+                            labels = imageLabels.map { Pair(it.text, it.confidence) }
                             isLabelingDone = true
                         }
                         .addOnFailureListener { e ->
@@ -248,7 +260,6 @@ fun ImageLabelingScreen() {
     }
 }
 
-
 @Composable
 fun ObjectDetectionScreen() {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
@@ -256,16 +267,7 @@ fun ObjectDetectionScreen() {
     var detectedObjects by remember { mutableStateOf<List<com.google.mlkit.vision.objects.DetectedObject>>(emptyList()) }
     var isObjectDetectionDone by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        imageUri = uri
-        if (uri != null) {
-            val source = ImageDecoder.createSource(context.contentResolver, uri)
-            imageBitmap = ImageDecoder.decodeBitmap(source)
-        }
-    }
-    val textMeasurer = rememberTextMeasurer() // Initialize textMeasurer here
+    val textMeasurer = rememberTextMeasurer()
 
     Column(
         modifier = Modifier
@@ -274,17 +276,15 @@ fun ObjectDetectionScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Button(onClick = { launcher.launch("image/*") }) {
-            Text("Select Image")
+        ImagePicker { uri ->
+            imageUri = uri
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
+            imageBitmap = ImageDecoder.decodeBitmap(source)
         }
         Spacer(modifier = Modifier.height(16.dp))
         imageBitmap?.let { bitmap ->
             Box(modifier = Modifier.size(250.dp)) {
-                Image(
-                    bitmap = bitmap.asImageBitmap(),
-                    contentDescription = "Selected Image",
-                    modifier = Modifier.fillMaxSize()
-                )
+                DisplayImage(bitmap)
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val scaleX = size.width / bitmap.width
                     val scaleY = size.height / bitmap.height
@@ -590,14 +590,86 @@ fun PoseDetectionScreen() {
         }
     }
 }
+
 @Composable
 fun SelfieSegmentationScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = "Selfie Segmentation Screen")
-    }
+//    var imageUri by remember { mutableStateOf<Uri?>(null) }
+//    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+//    var segmentedBitmap by remember { mutableStateOf<Bitmap?>(null) }
+//    var isSegmentationDone by remember { mutableStateOf(false) }
+//    val context = LocalContext.current
+//    val launcher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.GetContent()
+//    ) { uri: Uri? ->
+//        imageUri = uri
+//        if (uri != null) {
+//            val source = ImageDecoder.createSource(context.contentResolver, uri)
+//            imageBitmap = ImageDecoder.decodeBitmap(source)
+//        }
+//    }
+//
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .padding(16.dp),
+//        horizontalAlignment = Alignment.CenterHorizontally,
+//        verticalArrangement = Arrangement.Center
+//    ) {
+//        Button(onClick = { launcher.launch("image/*") }) {
+//            Text("Select Image")
+//        }
+//        Spacer(modifier = Modifier.height(16.dp))
+//        imageBitmap?.let { bitmap ->
+//            Image(
+//                bitmap = bitmap.asImageBitmap(),
+//                contentDescription = "Selected Image",
+//                modifier = Modifier.size(250.dp)
+//            )
+//            Spacer(modifier = Modifier.height(16.dp))
+//            if (!isSegmentationDone) {
+//                Button(onClick = {
+//                    val image = InputImage.fromBitmap(bitmap, 0)
+//                    val options = SelfieSegmenterOptions.Builder()
+//                        .setDetectorMode(SelfieSegmenterOptions.SINGLE_IMAGE_MODE)
+//                        .build()
+//                    val segmenter = SelfieSegmentation.getClient(options)
+//
+//                    segmenter.process(image)
+//                        .addOnSuccessListener { segmentationMask: SegmentationMask ->
+//                            val mask = segmentationMask.buffer
+//                            val width = segmentationMask.width
+//                            val height = segmentationMask.height
+//                            val pixels = IntArray(width * height)
+//
+//                            for (y in 0 until height) {
+//                                for (x in 0 until width) {
+//                                    val index = y * width + x
+//                                    val alpha = (mask[index] * 255).toInt()
+//                                    pixels[index] = (alpha shl 24) or 0x00FFFFFF // White background
+//                                }
+//                            }
+//
+//                            segmentedBitmap = Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888)
+//                            isSegmentationDone = true
+//                        }
+//                        .addOnFailureListener { e ->
+//                            Log.e("SelfieSegmentationScreen", "Error during segmentation: ${e.message}")
+//                        }
+//                }) {
+//                    Text("Segment Background")
+//                }
+//            }
+//            Spacer(modifier = Modifier.height(16.dp))
+//            segmentedBitmap?.let { segmented ->
+//                Text("Segmented Image:")
+//                Image(
+//                    bitmap = segmented.asImageBitmap(),
+//                    contentDescription = "Segmented Image",
+//                    modifier = Modifier.size(250.dp)
+//                )
+//            }
+//        }
+//    }
 }
 
 @Composable
@@ -741,3 +813,5 @@ fun TranslationScreen() {
         }
     }
 }
+
+

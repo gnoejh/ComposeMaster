@@ -5,6 +5,9 @@ ML Kit is Google's mobile SDK that simplifies integrating machine learning into 
 
 Other approaches to integrating ML into mobile apps include frameworks like TensorFlow Lite, Core ML (iOS), or cloud-based services such as Google Cloud AI, AWS SageMaker, and Azure Machine Learning.
 
+[ML Kit](https://developers.google.com/ml-kit/guides)
+[GitHub](https://github.com/googlesamples/mlkit/tree/master)
+
 ### AI Methods in Android
 
 | Method                  | Description                                                                 |

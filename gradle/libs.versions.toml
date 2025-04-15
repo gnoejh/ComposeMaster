@@ -34,6 +34,7 @@ mlkitSelfieSegmentation = "16.0.0-beta6"
 mlkitTextRecognition = "16.0.1"
 mlkitTranslation = "17.0.3"
 objectDetection = "17.0.2"
+segmentationSelfie = "16.0.0-beta6"
 tensorflowLite = "2.15.0"
 tensorflowLiteTaskVision = "0.4.4"
 uiViewbinding = "1.7.8"
@@ -162,3 +163,4 @@ mlkit = [
     "mlkit-entity-extraction",
     "mlkit-translation"
 ]
+

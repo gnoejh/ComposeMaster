@@ -232,6 +232,7 @@ class CounterMVIModel {
     6. show animation for success and fail, 7. show hint for number (even, odd, prime, etc.),
     8. show history of attempts, 9. show best score, 10. show leaderboard
  */
+
 data class GameState(
     val attempts: Int = 0,
     val isGameStarted: Boolean = false,

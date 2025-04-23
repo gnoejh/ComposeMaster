@@ -227,6 +227,10 @@ class CounterMVIModel {
 
 /*=======================================================================
   Lab (Experimental)
+  1. show number of attempts, 2. make or Buttons for level change (1-10, 1-100, 1-1000),
+    3. show last feedback, 4. put timer for run out, 5. use emoji for feedback,
+    6. show animation for success and fail, 7. show hint for number (even, odd, prime, etc.),
+    8. show history of attempts, 9. show best score, 10. show leaderboard
  */
 data class GameState(
     val attempts: Int = 0,

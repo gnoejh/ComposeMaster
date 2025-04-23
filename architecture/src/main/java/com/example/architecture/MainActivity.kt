@@ -227,10 +227,17 @@ class CounterMVIModel {
 
 /*=======================================================================
   Lab (Experimental)
-  1. show number of attempts, 2. make or Buttons for level change (1-10, 1-100, 1-1000),
-    3. show last feedback, 4. put timer for run out, 5. use emoji for feedback,
-    6. show animation for success and fail, 7. show hint for number (even, odd, prime, etc.),
-    8. show history of attempts, 9. show best score, 10. show leaderboard
+  0. your photo/name/id: mandatory
+
+    I will choose one the following
+    Must be different: no copy
+  1. make or Buttons for level change (1-10, 1-100, 1-1000),
+  2. put timer for run out,
+  3. use emoji for feedback,
+  4. show animation for success and fail,
+  5. show hint for number (even, odd, prime, etc.),
+  6. design
+  7. others
  */
 
 data class GameState(

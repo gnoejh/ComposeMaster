@@ -49,6 +49,10 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
+    implementation(libs.hilt.android.v2481)
+//    kapt(libs.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose.v110)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

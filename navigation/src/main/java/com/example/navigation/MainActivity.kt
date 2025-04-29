@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -29,6 +30,14 @@ import androidx.navigation.navArgument
 import com.example.navigation.ui.theme.ComposeMasterTheme
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
+
+// Define background color modifiers for each screen
+val screen1Modifier = Modifier.background(Color.LightGray)
+val screen2Modifier = Modifier.background(Color.Cyan)
+val screen3Modifier = Modifier.background(Color.Blue)
+val screen4Modifier = Modifier.background(Color.Yellow)
+val screen5Modifier = Modifier.background(Color.Magenta)
+val labModifier = Modifier.background(Color.Green)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,11 +56,6 @@ class MainActivity : ComponentActivity() {
                         // For instance:
                         when(destination.route){
                             "home" -> println("You are in home screen")
-                            "screen1" -> println("You are in screen 1")
-                            "screen2" -> println("You are in screen 2")
-                            "screen3" -> println("You are in screen 3")
-                            "screen4" -> println("You are in screen 4")
-                            "screen5" -> println("You are in screen 5")
                             "lab" -> println("You are in lab screen")
                         }
                     }
@@ -74,11 +78,6 @@ fun MainNavigation(navController: NavHostController) {
         // For instance:
         when(currentRoute){
             "home" -> println("You are in home screen")
-            "screen1" -> println("You are in screen 1")
-            "screen2" -> println("You are in screen 2")
-            "screen3" -> println("You are in screen 3")
-            "screen4" -> println("You are in screen 4")
-            "screen5" -> println("You are in screen 5")
             "lab" -> println("You are in lab screen")
         }
     }
@@ -163,11 +162,13 @@ fun HomeScreen(navController: NavHostController) {
 @Composable
 fun Screen1(navController: NavHostController) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .then(screen1Modifier),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Screen 1")
+        Text(text = "Screen 1", fontSize = 30.sp)
         Button(onClick = { navController.popBackStack() }) {
             Text("Go Back")
         }
@@ -177,26 +178,31 @@ fun Screen1(navController: NavHostController) {
 @Composable
 fun Screen2(navController: NavHostController, data: String?) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .then(screen2Modifier),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Screen 2")
-        Text(text = "Data received: $data")
+        Text(text = "Screen 2", fontSize = 30.sp)
+        Text(text = "Data received: $data", fontSize = 30.sp)
         Button(onClick = { navController.popBackStack() }) {
             Text("Go Back")
         }
     }
 }
+
 @Composable
 fun Screen3(navController: NavHostController, data: String?) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .then(screen3Modifier),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Screen 3")
-        Text(text = "Optional Data received: $data")
+        Text(text = "Screen 3", fontSize = 30.sp)
+        Text(text = "Optional Data received: $data", fontSize = 30.sp)
         Button(onClick = { navController.popBackStack() }) {
             Text("Go Back")
         }
@@ -208,11 +214,12 @@ fun Screen4(navController: NavHostController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .then(screen4Modifier),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Screen 4")
+        Text(text = "Screen 4", fontSize = 30.sp)
         Button(onClick = { navController.navigate("home") {
             popUpTo("home") {
                 inclusive = true
@@ -228,11 +235,12 @@ fun Screen5(navController: NavHostController, name: String?, age: Int) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .then(screen5Modifier),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Screen 5")
+        Text(text = "Screen 5", fontSize = 30.sp)
         Text(text = "Name received: $name")
         Text(text = "Age received: $age")
         Button(onClick = { navController.popBackStack() }) {
@@ -247,18 +255,19 @@ fun LabScreen(navController: NavHostController) {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .background(Color.Green),
+            .then(labModifier),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Lab Screen")
+        Text(text = "Lab Screen", fontSize = 30.sp)
         Text(text = "Navigate through the other screens")
-        // Test: Add a Button
+        // TODO: Add buttons to navigate to other screens
+
 
 
 
         Button(onClick = { navController.navigate("home") }) {
-            Text("Move Back to Home")
+            Text("Go Back to Home")
         }
     }
 }

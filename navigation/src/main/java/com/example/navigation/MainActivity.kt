@@ -3,6 +3,7 @@ package com.example.navigation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,16 +13,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.navigation.ui.theme.ComposeMasterTheme
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +40,22 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainNavigation()
+                    val navController = rememberNavController()
+                    navController.addOnDestinationChangedListener { controller, destination, arguments ->
+                        println("Destination changed: ${destination.route}")
+                        // You can perform actions here based on the current route
+                        // For instance:
+                        when(destination.route){
+                            "home" -> println("You are in home screen")
+                            "screen1" -> println("You are in screen 1")
+                            "screen2" -> println("You are in screen 2")
+                            "screen3" -> println("You are in screen 3")
+                            "screen4" -> println("You are in screen 4")
+                            "screen5" -> println("You are in screen 5")
+                            "lab" -> println("You are in lab screen")
+                        }
+                    }
+                    MainNavigation(navController)
                 }
             }
         }
@@ -41,8 +63,25 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainNavigation() {
-    val navController = rememberNavController()
+fun MainNavigation(navController: NavHostController) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    LaunchedEffect(key1 = currentRoute) {
+        // This block will execute whenever currentRoute changes
+        println("Current route changed to: $currentRoute")
+        // You can perform actions here based on the current route
+        // For instance:
+        when(currentRoute){
+            "home" -> println("You are in home screen")
+            "screen1" -> println("You are in screen 1")
+            "screen2" -> println("You are in screen 2")
+            "screen3" -> println("You are in screen 3")
+            "screen4" -> println("You are in screen 4")
+            "screen5" -> println("You are in screen 5")
+            "lab" -> println("You are in lab screen")
+        }
+    }
     NavHost(navController = navController, startDestination = "home") {
         composable("home") { HomeScreen(navController) }
         composable("screen1") { Screen1(navController) }
@@ -83,6 +122,9 @@ fun MainNavigation() {
                 age = backStackEntry.arguments?.getInt("age") ?: 0
             )
         }
+        composable("lab"){
+            LabScreen(navController)
+        }
     }
 }
 
@@ -111,6 +153,9 @@ fun HomeScreen(navController: NavHostController) {
         }
         Button(onClick = { navController.navigate("screen5?name=JohnDoe&age=30") }) {
             Text("Go to Screen 5 with name and age")
+        }
+        Button(onClick = { navController.navigate("lab") }) {
+            Text("Go to Lab Screen")
         }
     }
 }
@@ -192,6 +237,28 @@ fun Screen5(navController: NavHostController, name: String?, age: Int) {
         Text(text = "Age received: $age")
         Button(onClick = { navController.popBackStack() }) {
             Text("Go Back")
+        }
+    }
+}
+
+@Composable
+fun LabScreen(navController: NavHostController) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .background(Color.Green),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "Lab Screen")
+        Text(text = "Navigate through the other screens")
+        // Test: Add a Button
+
+
+
+        Button(onClick = { navController.navigate("home") }) {
+            Text("Move Back to Home")
         }
     }
 }

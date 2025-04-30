@@ -259,10 +259,11 @@ fun LabScreen(navController: NavHostController) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Text(text = "Name/ID", fontSize = 30.sp)
         Text(text = "Lab Screen", fontSize = 30.sp)
         Text(text = "Navigate through the other screens")
-        // TODO: Add buttons to navigate to other screens
-
+        // TODO: Add buttons to navigate to other screen and return here from there
+        // screen no: no =  (last digit of ID) % 6
 
 
 

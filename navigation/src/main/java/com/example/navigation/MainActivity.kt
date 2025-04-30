@@ -32,7 +32,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 
 // Define background color modifiers for each screen
-val screen1Modifier = Modifier.background(Color.LightGray)
+val screen1Modifier = Modifier.background(Color.Gray)
 val screen2Modifier = Modifier.background(Color.Cyan)
 val screen3Modifier = Modifier.background(Color.Blue)
 val screen4Modifier = Modifier.background(Color.Yellow)

@@ -261,9 +261,9 @@ fun LabScreen(navController: NavHostController) {
     ) {
         Text(text = "Name/ID", fontSize = 30.sp)
         Text(text = "Lab Screen", fontSize = 30.sp)
-        Text(text = "Navigate through the other screens")
-        // TODO: Add buttons to navigate to other screen and return here from there
-        // screen no: no =  (last digit of ID) % 6
+        Text(text = "Add a button here and visit Screen no and return here. " +
+                "screen no: no =  (last digit of ID) % 6", fontSize = 30.sp)
+
 
 
 

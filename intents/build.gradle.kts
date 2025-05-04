@@ -2,17 +2,15 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp)
-    id("com.google.dagger.hilt.android") version "2.56"
 }
 
 android {
-    namespace = "com.example.mvvmroomdatabase"
+    namespace = "com.example.intents"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.mvvmroomdatabase"
-        minSdk = 34
+        applicationId = "com.example.intents"
+        minSdk = 35
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -58,16 +56,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
-    // Room dependencies
-    implementation(libs.androidx.room.runtime)
-    ksp(libs.androidx.room.compiler)
-    implementation(libs.androidx.room.ktx) // Kotlin Extensions and Coroutines support
-    testImplementation(libs.androidx.room.testing) // For testing
-
-    //optional
-    implementation(libs.androidx.hilt.navigation.compose)
-    implementation(libs.hilt.android.v250)
-    ksp(libs.hilt.compiler.v250)
-    implementation(libs.androidx.hilt.navigation.compose)
 }

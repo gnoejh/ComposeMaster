@@ -4,6 +4,8 @@
 
 Intents are messaging objects used to request actions from other app components. They facilitate communication between components of the same app as well as between different apps. Intents are a fundamental part of Android's inter-component communication system.
 
+[link](https://developer.android.com/training/basics/intents?_gl=1*1goz337*_up*MQ..*_ga*NTY3MjYyODA2LjE3NDYzOTQ4ODA.*_ga_6HH9YJMN9M*MTc0NjM5NDg4MC4xLjAuMTc0NjM5NTA2NS4wLjAuMTgxMjkyMzc0)
+
 ## Types of Intents
 
 ### Explicit Intents

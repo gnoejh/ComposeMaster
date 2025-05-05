@@ -97,7 +97,7 @@ fun IntentTestingScreen(modifier: Modifier = Modifier) {
                 { ctx ->
                     val intent = Intent(Intent.ACTION_SEND).apply {
                         type = "text/plain"
-                        putExtra(Intent.EXTRA_EMAIL, arrayOf("example@example.com"))
+                        putExtra(Intent.EXTRA_EMAIL, arrayOf("h.jeong@inha.uz"))
                         putExtra(Intent.EXTRA_SUBJECT, "Test Subject")
                         putExtra(Intent.EXTRA_TEXT, "This is a test email")
                     }

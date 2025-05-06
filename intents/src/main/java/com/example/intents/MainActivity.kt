@@ -15,6 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,8 +31,47 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ComposeMasterTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    IntentTestingScreen(modifier = Modifier.padding(innerPadding))
+                val context = LocalContext.current
+                var expanded by remember { mutableStateOf(false) }
+                var selectedIntentOption by remember { mutableStateOf<IntentOption?>(null) }
+                
+                val intentOptions = rememberIntentOptions(context)
+                
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    topBar = {
+                        IntentSelectionTopBar(
+                            expanded = expanded,
+                            onExpandedChange = { expanded = it },
+                            selectedIntentOption = selectedIntentOption,
+                            onIntentSelected = { selectedIntentOption = it },
+                            intentOptions = intentOptions
+                        )
+                    }
+                ) { innerPadding ->
+                    IntentTestingScreen(
+                        modifier = Modifier.padding(innerPadding),
+                        selectedIntentOption = selectedIntentOption,
+                        onExecuteIntent = {
+                            selectedIntentOption?.let {
+                                try {
+                                    it.handler(context)
+                                } catch (e: Exception) {
+                                    Toast.makeText(
+                                        context,
+                                        "Error: ${e.message}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            } ?: run {
+                                Toast.makeText(
+                                    context,
+                                    "Please select an intent option first",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    )
                 }
             }
         }
@@ -47,21 +87,86 @@ data class IntentOption(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun IntentTestingScreen(modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    var expanded by remember { mutableStateOf(false) }
-    var selectedIntentOption by remember { mutableStateOf<IntentOption?>(null) }
+fun IntentSelectionTopBar(
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    selectedIntentOption: IntentOption?,
+    onIntentSelected: (IntentOption) -> Unit,
+    intentOptions: List<IntentOption>
+) {
+    val categories = intentOptions.map { it.category }.distinct()
     
+    TopAppBar(
+        title = { Text("Intent Testing App") },
+        actions = {
+            Box {
+                IconButton(
+                    onClick = { onExpandedChange(!expanded) }
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Menu,
+                        contentDescription = "Intent menu"
+                    )
+                }
+                
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { onExpandedChange(false) },
+                    modifier = Modifier.width(320.dp)
+                ) {
+                    categories.forEach { category ->
+                        // Add category header
+                        DropdownMenuItem(
+                            text = { 
+                                Text(
+                                    text = category,
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                            },
+                            onClick = {},
+                            enabled = false
+                        )
+                        
+                        // Add intents in this category
+                        intentOptions
+                            .filter { it.category == category }
+                            .forEach { option ->
+                                DropdownMenuItem(
+                                    text = { 
+                                        Column(modifier = Modifier.fillMaxWidth()) {
+                                            Text(text = option.name)
+                                            Text(
+                                                text = option.description,
+                                                style = MaterialTheme.typography.bodySmall
+                                            )
+                                        }
+                                    },
+                                    onClick = {
+                                        onIntentSelected(option)
+                                        onExpandedChange(false)
+                                    }
+                                )
+                            }
+                        
+                        Divider()
+                    }
+                }
+            }
+        }
+    )
+}
+
+@Composable
+fun rememberIntentOptions(context: android.content.Context): List<IntentOption> {
     val takePictureLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap ->
-        // Handle the returned bitmap if needed
         if (bitmap != null) {
             Toast.makeText(context, "Picture taken successfully", Toast.LENGTH_SHORT).show()
         }
     }
     
-    val intentOptions = remember {
+    return remember {
         listOf(
             // Explicit Intents
             IntentOption(
@@ -167,112 +272,101 @@ fun IntentTestingScreen(modifier: Modifier = Modifier) {
                     }
                     ctx.startActivity(intent)
                 }
+            ),
+            
+            // Intent Relay Puzzle Game Lab
+            IntentOption(
+                "Start Puzzle Game",
+                "Begin the intent relay puzzle sequence",
+                "Lab",
+                { ctx ->
+                    val intent = Intent("com.example.intents.START_PUZZLE").apply {
+                        putExtra("puzzle_level", 1)
+                    }
+                    ctx.startActivity(intent)
+                }
+            ),
+            IntentOption(
+                "Solve Action Puzzle",
+                "Send an intent with the correct action to proceed",
+                "Lab",
+                { ctx ->
+                    val intent = Intent("com.example.intents.PUZZLE_ACTION").apply {
+                        putExtra("solution_key", "action_solution")
+                    }
+                    ctx.startActivity(intent)
+                }
+            ),
+            IntentOption(
+                "Solve Data Puzzle",
+                "Send an intent with correct data URI format",
+                "Lab",
+                { ctx ->
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        data = Uri.parse("puzzle://solve/data/123")
+                    }
+                    ctx.startActivity(intent)
+                }
+            ),
+            IntentOption(
+                "Solve Category Puzzle",
+                "Send an intent with the correct category to match a filter",
+                "Lab",
+                { ctx ->
+                    val intent = Intent("com.example.intents.CATEGORY_PUZZLE").apply {
+                        addCategory("com.example.intents.category.PUZZLE_PIECE")
+                        putExtra("piece_id", "center_piece")
+                    }
+                    ctx.startActivity(intent)
+                }
+            ),
+            IntentOption(
+                "Solve Extras Puzzle",
+                "Send an intent with the required extra data",
+                "Lab",
+                { ctx ->
+                    val intent = Intent("com.example.intents.EXTRAS_PUZZLE").apply {
+                        putExtra("key1", "unlock")
+                        putExtra("key2", 42)
+                        putExtra("key3", true)
+                    }
+                    ctx.startActivity(intent)
+                }
+            ),
+            IntentOption(
+                "Final Challenge",
+                "Chain multiple intents with broadcast receivers to complete the puzzle",
+                "Lab",
+                { ctx ->
+                    val intent = Intent("com.example.intents.FINAL_CHALLENGE").apply {
+                        putExtra("challenge_mode", "advanced")
+                        putExtra("time_limit", 120) // 2 minutes
+                        data = Uri.parse("puzzle://final/challenge")
+                    }
+                    ctx.startActivity(intent)
+                }
             )
         )
     }
-    
-    val categories = intentOptions.map { it.category }.distinct()
-    
+}
+
+@Composable
+fun IntentTestingScreen(
+    modifier: Modifier = Modifier, 
+    selectedIntentOption: IntentOption?,
+    onExecuteIntent: () -> Unit
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = "Intent Testing App",
-            style = MaterialTheme.typography.headlineMedium
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        Box {
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = it }
-            ) {
-                TextField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(),
-                    readOnly = true,
-                    value = selectedIntentOption?.name ?: "Select Intent to Test",
-                    onValueChange = {},
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowDropDown,
-                            contentDescription = "Dropdown menu"
-                        )
-                    }
-                )
-                
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    categories.forEach { category ->
-                        // Add category header
-                        DropdownMenuItem(
-                            text = { 
-                                Text(
-                                    text = category,
-                                    style = MaterialTheme.typography.labelLarge
-                                )
-                            },
-                            onClick = {},
-                            enabled = false
-                        )
-                        
-                        // Add intents in this category
-                        intentOptions
-                            .filter { it.category == category }
-                            .forEach { option ->
-                                DropdownMenuItem(
-                                    text = { 
-                                        Column {
-                                            Text(text = option.name)
-                                            Text(
-                                                text = option.description,
-                                                style = MaterialTheme.typography.bodySmall
-                                            )
-                                        }
-                                    },
-                                    onClick = {
-                                        selectedIntentOption = option
-                                        expanded = false
-                                    }
-                                )
-                            }
-                        
-                        Divider()
-                    }
-                }
-            }
-        }
-        
         Spacer(modifier = Modifier.height(16.dp))
         
         Button(
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            onClick = {
-                selectedIntentOption?.let {
-                    try {
-                        it.handler(context)
-                    } catch (e: Exception) {
-                        Toast.makeText(
-                            context,
-                            "Error: ${e.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                } ?: run {
-                    Toast.makeText(
-                        context,
-                        "Please select an intent option first",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
+            onClick = onExecuteIntent
         ) {
             Text(text = "Execute Intent")
         }
@@ -308,6 +402,10 @@ fun IntentTestingScreen(modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     ComposeMasterTheme {
-        IntentTestingScreen()
+        IntentTestingScreen(
+            selectedIntentOption = null,
+            onExecuteIntent = {}
+        )
     }
 }
+

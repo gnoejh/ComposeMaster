@@ -61,6 +61,39 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+
+        <!-- Puzzle Activity -->
+        <activity
+            android:name=".PuzzleActivity"
+            android:exported="true"> <!-- explict intent possible to PuzzleActivity -->
+            <intent-filter>
+                <action android:name="com.example.intents.START_PUZZLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.example.intents.PUZZLE_ACTION" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="puzzle" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.example.intents.CATEGORY_PUZZLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="com.example.intents.category.PUZZLE_PIECE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.example.intents.EXTRAS_PUZZLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.example.intents.FINAL_CHALLENGE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="puzzle" android:host="final" android:pathPrefix="/challenge" />
+            </intent-filter>
+        </activity>
         
     </application>
 

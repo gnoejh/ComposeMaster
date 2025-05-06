@@ -77,38 +77,32 @@ Intent filters declare the capabilities of a component - what kinds of intents i
 | `CATEGORY_APP_MUSIC` | Music app |
 | `CATEGORY_APP_GALLERY` | Gallery app |
 
-## Intent Resolution Process
+## MIME Types and Data URIs
 
-```mermaid
-flowchart TD
-    A[Intent Created] --> B{Explicit or Implicit?}
-    B -->|Explicit| C[Launch Specified Component]
-    B -->|Implicit| D[System Checks Intent Filters]
-    D --> E{Matching Filters Found?}
-    E -->|Yes| F{Multiple Matches?}
-    E -->|No| G[No Components Can Handle]
-    F -->|Yes| H[Show Chooser Dialog]
-    F -->|No| I[Launch Matching Component]
-    H --> I
-    G --> J[ActivityNotFoundException]
-    I --> K[Component Receives Intent]
-    C --> K
-```
+| MIME Type | Description | Example URI |
+|-----------|-------------|-------------|
+| `text/plain` | Plain text | `content://contacts/people/1` |
+| `text/html` | HTML text | `file:///path/file.html` |
+| `image/*` | Any image | `content://media/external/images/1` |
+| `audio/*` | Any audio | `content://media/external/audio/1` |
+| `video/*` | Any video | `content://media/external/video/1` |
+| `application/pdf` | PDF file | `file:///path/document.pdf` |
+| `application/json` | JSON data | N/A |
 
-## Intent Flow Between Components
 
-```mermaid
-sequenceDiagram
-    participant A as ActivityA
-    participant S as Android System
-    participant B as ActivityB
-    A->>A: Create Intent
-    A->>S: startActivity(intent)
-    S->>S: Resolve Intent
-    S->>B: onCreate()
-    S->>B: Pass Intent
-    B->>B: Process Intent
-```
+## Common Intent Flags
+
+| Flag | Description |
+|------|-------------|
+| `FLAG_ACTIVITY_NEW_TASK` | Start activity in a new task |
+| `FLAG_ACTIVITY_CLEAR_TOP` | Clear all activities above in the stack |
+| `FLAG_ACTIVITY_SINGLE_TOP` | Don't launch a new instance if one exists at the top |
+| `FLAG_GRANT_READ_URI_PERMISSION` | Grant read permission on URI |
+| `FLAG_GRANT_WRITE_URI_PERMISSION` | Grant write permission on URI |
+| `FLAG_ACTIVITY_NO_HISTORY` | Don't keep in the history stack |
+| `FLAG_ACTIVITY_REORDER_TO_FRONT` | Bring activity to front if it exists |
+
+
 
 ## Common Intent Use Cases
 
@@ -137,76 +131,6 @@ val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:1234567890"))
 startActivity(intent)
 ```
 
-## Activity Launch Methods
-
-Different methods are available for launching activities with intents, depending on whether you're using traditional Android or Jetpack Compose, and whether you need a result back.
-
-| Method | Context | Description | Example | Result Handling |
-|--------|---------|-------------|---------|----------------|
-| `startActivity()` | Traditional Android | Launches an activity without expecting a result | `startActivity(Intent(context, SecondActivity::class.java))` | N/A |
-| `startActivityForResult()` | Traditional Android (Deprecated) | Launches an activity expecting a result | `startActivityForResult(intent, REQUEST_CODE)` | Override `onActivityResult()` to handle returned data |
-| `registerForActivityResult()` | AndroidX Activity | Modern replacement for startActivityForResult | `registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result -> /* handle result */ }` | Callback provided in the registration |
-| `rememberLauncherForActivityResult()` | Jetpack Compose | Compose-specific way to launch activities with results | `val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result -> /* handle result */ }` | Callback provided in the launcher definition |
-| `rememberLauncherForActivityResult()` with custom contract | Jetpack Compose | For specific data types like images, permissions | `val launcher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success -> /* handle success boolean */ }` | Type-specific result handling |
-| `ActivityResultLauncher.launch()` | Both | Method to launch the activity after registering | `launcher.launch(intent)` or `launcher.launch(uri)` | N/A (handled in registration) |
-| `Intent.createChooser()` | Both | Creates a chooser dialog for implicit intents | `startActivity(Intent.createChooser(intent, "Select an app"))` | Uses any of the above methods for launching |
-
-### Comparison of Activity Launch Methods
-
-```mermaid
-graph TD
-    A[Need to Launch Activity] --> B{Need Result?}
-    B -->|No| C[startActivity]
-    B -->|Yes| D{Using Compose?}
-    D -->|No| E{API Level}
-    D -->|Yes| F[rememberLauncherForActivityResult]
-    E -->|< API 30| G[startActivityForResult]
-    E -->|>= API 30| H[registerForActivityResult]
-    
-    F --> I[Launch with custom contract]
-    F --> J[Launch with StartActivityForResult contract]
-    H --> K[Launch via ActivityResultLauncher]
-    G --> L[Handle in onActivityResult]
-```
-
-### Available ActivityResultContracts
-
-When using `registerForActivityResult()` or `rememberLauncherForActivityResult()`, you need to specify a contract that defines the input type and expected result type. AndroidX provides several built-in contracts:
-
-| Contract | Input Type | Result Type | Description |
-|----------|------------|-------------|-------------|
-| `StartActivityForResult` | `Intent` | `ActivityResult` | General purpose contract for starting activities and getting results |
-| `RequestPermission` | `String` | `Boolean` | Request a single permission and get granted status |
-| `RequestMultiplePermissions` | `Array<String>` | `Map<String, Boolean>` | Request multiple permissions and get granted status for each |
-| `TakePicturePreview` | `Unit` (no input) | `Bitmap?` | Take a photo and get a thumbnail bitmap |
-| `TakePicture` | `Uri` | `Boolean` | Take a photo and save to provided Uri |
-| `CaptureVideo` | `Uri` | `Boolean` | Capture video and save to provided Uri |
-| `PickContact` | `Unit` (no input) | `Uri?` | Pick a contact from the device |
-| `GetContent` | `String` (MIME type) | `Uri?` | Pick content of specified type (e.g., "image/*") |
-| `GetMultipleContents` | `String` (MIME type) | `List<Uri>` | Pick multiple items of specified type |
-| `OpenDocument` | `Array<String>` (MIME types) | `Uri?` | Open a document of specified types |
-| `OpenMultipleDocuments` | `Array<String>` (MIME types) | `List<Uri>` | Open multiple documents of specified types |
-| `OpenDocumentTree` | `Uri?` (initial Uri) | `Uri?` | Pick a directory |
-| `CreateDocument` | `String` (document name) | `Uri?` | Create a new document |
-
-#### Example Usage with Compose
-
-```kotlin
-// Example: Take a picture with Compose
-val takePictureLauncher = rememberLauncherForActivityResult(
-    contract = ActivityResultContracts.TakePicturePreview()
-) { bitmap ->
-    // Handle the bitmap result
-    if (bitmap != null) {
-        // Process the captured image
-    }
-}
-
-// Usage
-Button(onClick = { takePictureLauncher.launch(null) }) {
-    Text("Take Picture")
-}
-```
 
 ## Intent Filter Matching Logic
 
@@ -227,23 +151,7 @@ graph LR
 2. **Category Test**: The intent must pass for every category in the filter
 3. **Data Test**: The intent's data URI and MIME type must match the filter's specifications
 
-## Intent Filter Specificity
 
-The more specific an intent filter, the less likely it is to match an incoming intent:
-
-```mermaid
-graph TD
-    A[Intent Filter Specificity]
-    A --> B[More Specific]
-    A --> C[Less Specific]
-    B --> D{Many Actions<br>Many Categories<br>Many Data Specs}
-    C --> E{Few Actions<br>Few Categories<br>Few Data Specs}
-    D --> F[Fewer Matches]
-    E --> G[More Matches]
-    F --> H{Priority}
-    G --> H
-    H --> I[Component Selected]
-```
 
 ## Best Practices
 
@@ -268,106 +176,30 @@ graph TD
 - Don't trust data from external sources
 - Consider using signature-based permissions
 
-## MIME Types and Data URIs
 
-| MIME Type | Description | Example URI |
-|-----------|-------------|-------------|
-| `text/plain` | Plain text | `content://contacts/people/1` |
-| `text/html` | HTML text | `file:///path/file.html` |
-| `image/*` | Any image | `content://media/external/images/1` |
-| `audio/*` | Any audio | `content://media/external/audio/1` |
-| `video/*` | Any video | `content://media/external/video/1` |
-| `application/pdf` | PDF file | `file:///path/document.pdf` |
-| `application/json` | JSON data | N/A |
 
-## Component Relationship with Intents
+## Custom vs Standard Intent Components
 
-```mermaid
-classDiagram
-    class Intent {
-        +String action
-        +Uri data
-        +String type
-        +Set~String~ categories
-        +Bundle extras
-        +ComponentName component
-    }
-    
-    class IntentFilter {
-        +List~String~ actions
-        +List~String~ categories
-        +List~DataSpec~ dataSpecs
-    }
-    
-    class Activity {
-        +onCreate(Bundle)
-        +onNewIntent(Intent)
-    }
-    
-    class Service {
-        +onStartCommand(Intent, int, int)
-        +onBind(Intent)
-    }
-    
-    class BroadcastReceiver {
-        +onReceive(Context, Intent)
-    }
-    
-    Intent --> Activity: starts
-    Intent --> Service: starts/binds
-    Intent --> BroadcastReceiver: delivers to
-    Activity --> IntentFilter: declares
-    Service --> IntentFilter: declares
-    BroadcastReceiver --> IntentFilter: declares
+- Actions can be custom (com.example.intents.START_PUZZLE) or standard system actions (android.intent.action.VIEW)
+- Categories can be custom (com.example.intents.category.PUZZLE_PIECE) or standard (android.intent.category.DEFAULT)
+- Data schemes can be custom (puzzle://) or standard (http://, etc.)
+
+## The DEFAULT Category
+- When using startActivity() with an implicit intent, Android automatically adds the DEFAULT category
+- Activities must include the DEFAULT category in their intent filters to receive implicit intents
+- Example in manifest:
+
+```xml
+<intent-filter>
+<action android:name="com.example.intents.START_PUZZLE" />
+<category android:name="android.intent.category.DEFAULT" />
+</intent-filter>
 ```
 
-## Common Intent Flags
-
-| Flag | Description |
-|------|-------------|
-| `FLAG_ACTIVITY_NEW_TASK` | Start activity in a new task |
-| `FLAG_ACTIVITY_CLEAR_TOP` | Clear all activities above in the stack |
-| `FLAG_ACTIVITY_SINGLE_TOP` | Don't launch a new instance if one exists at the top |
-| `FLAG_GRANT_READ_URI_PERMISSION` | Grant read permission on URI |
-| `FLAG_GRANT_WRITE_URI_PERMISSION` | Grant write permission on URI |
-| `FLAG_ACTIVITY_NO_HISTORY` | Don't keep in the history stack |
-| `FLAG_ACTIVITY_REORDER_TO_FRONT` | Bring activity to front if it exists |
-
-## Intent Resolution Process in Detail
-
-```mermaid
-stateDiagram-v2
-    [*] --> CreateIntent
-    CreateIntent --> ExplicitIntent: Component name specified
-    CreateIntent --> ImplicitIntent: No component name
-    
-    ExplicitIntent --> FindComponent: Find by class name
-    FindComponent --> ComponentExists: Found
-    FindComponent --> Exception: Not found
-    
-    ImplicitIntent --> FilterMatching: Query PackageManager
-    FilterMatching --> Action: Check action match
-    Action --> Category: If matches
-    Action --> NoMatch: If no match
-    Category --> Data: If all match
-    Category --> NoMatch: If any doesn't match
-    Data --> DataType: If URI scheme matches
-    Data --> NoMatch: If URI scheme doesn't match
-    DataType --> Match: If type matches
-    DataType --> NoMatch: If type doesn't match
-    
-    Match --> MultipleMatches: Multiple filters match
-    Match --> SingleMatch: One filter matches
-    MultipleMatches --> Chooser: Show disambiguation dialog
-    SingleMatch --> Launch
-    Chooser --> Launch
-    
-    ComponentExists --> Launch
-    Launch --> [*]
-    Exception --> [*]
-    NoMatch --> NoHandler: ActivityNotFoundException
-    NoHandler --> [*]
-```
+## Explicit vs. Implicit Intents
+- Explicit intents bypass all filters and directly target a specific component
+- Implicit intents must match an intent filter (action, category, and data if specified)
+- Intent filters allow activities to handle specific types of requests without direct component references
 
 ## References
 
@@ -375,4 +207,73 @@ stateDiagram-v2
 - [Implicit vs Explicit Intents](https://developer.android.com/training/basics/intents)
 - [Common Intents](https://developer.android.com/guide/components/intents-common)
 
-`
+# Activity Launch Methods
+
+Different methods are available for launching activities with intents, depending on whether you're using traditional Android or Jetpack Compose, and whether you need a result back.
+
+| Method | Context | Description | Example | Result Handling |
+|--------|---------|-------------|---------|----------------|
+| `startActivity()` | Traditional Android | Launches an activity without expecting a result | `startActivity(Intent(context, SecondActivity::class.java))` | N/A |
+| `startActivityForResult()` | Traditional Android (Deprecated) | Launches an activity expecting a result | `startActivityForResult(intent, REQUEST_CODE)` | Override `onActivityResult()` to handle returned data |
+| `registerForActivityResult()` | AndroidX Activity | Modern replacement for startActivityForResult | `registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result -> /* handle result */ }` | Callback provided in the registration |
+| `rememberLauncherForActivityResult()` | Jetpack Compose | Compose-specific way to launch activities with results | `val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result -> /* handle result */ }` | Callback provided in the launcher definition |
+| `rememberLauncherForActivityResult()` with custom contract | Jetpack Compose | For specific data types like images, permissions | `val launcher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success -> /* handle success boolean */ }` | Type-specific result handling |
+| `ActivityResultLauncher.launch()` | Both | Method to launch the activity after registering | `launcher.launch(intent)` or `launcher.launch(uri)` | N/A (handled in registration) |
+| `Intent.createChooser()` | Both | Creates a chooser dialog for implicit intents | `startActivity(Intent.createChooser(intent, "Select an app"))` | Uses any of the above methods for launching |
+
+## Comparison of Activity Launch Methods
+
+```mermaid
+graph TD
+    A[Need to Launch Activity] --> B{Need Result?}
+    B -->|No| C[startActivity]
+    B -->|Yes| D{Using Compose?}
+    D -->|No| E{API Level}
+    D -->|Yes| F[rememberLauncherForActivityResult]
+    E -->|< API 30| G[startActivityForResult]
+    E -->|>= API 30| H[registerForActivityResult]
+    
+    F --> I[Launch with custom contract]
+    F --> J[Launch with StartActivityForResult contract]
+    H --> K[Launch via ActivityResultLauncher]
+    G --> L[Handle in onActivityResult]
+```
+
+## Available ActivityResultContracts
+
+When using `registerForActivityResult()` or `rememberLauncherForActivityResult()`, you need to specify a contract that defines the input type and expected result type. AndroidX provides several built-in contracts:
+
+| Contract | Input Type | Result Type | Description |
+|----------|------------|-------------|-------------|
+| `StartActivityForResult` | `Intent` | `ActivityResult` | General purpose contract for starting activities and getting results |
+| `RequestPermission` | `String` | `Boolean` | Request a single permission and get granted status |
+| `RequestMultiplePermissions` | `Array<String>` | `Map<String, Boolean>` | Request multiple permissions and get granted status for each |
+| `TakePicturePreview` | `Unit` (no input) | `Bitmap?` | Take a photo and get a thumbnail bitmap |
+| `TakePicture` | `Uri` | `Boolean` | Take a photo and save to provided Uri |
+| `CaptureVideo` | `Uri` | `Boolean` | Capture video and save to provided Uri |
+| `PickContact` | `Unit` (no input) | `Uri?` | Pick a contact from the device |
+| `GetContent` | `String` (MIME type) | `Uri?` | Pick content of specified type (e.g., "image/*") |
+| `GetMultipleContents` | `String` (MIME type) | `List<Uri>` | Pick multiple items of specified type |
+| `OpenDocument` | `Array<String>` (MIME types) | `Uri?` | Open a document of specified types |
+| `OpenMultipleDocuments` | `Array<String>` (MIME types) | `List<Uri>` | Open multiple documents of specified types |
+| `OpenDocumentTree` | `Uri?` (initial Uri) | `Uri?` | Pick a directory |
+| `CreateDocument` | `String` (document name) | `Uri?` | Create a new document |
+
+### Example Usage with Compose
+
+```kotlin
+// Example: Take a picture with Compose
+val takePictureLauncher = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.TakePicturePreview()
+) { bitmap ->
+    // Handle the bitmap result
+    if (bitmap != null) {
+        // Process the captured image
+    }
+}
+
+// Usage
+Button(onClick = { takePictureLauncher.launch(null) }) {
+    Text("Take Picture")
+}
+```

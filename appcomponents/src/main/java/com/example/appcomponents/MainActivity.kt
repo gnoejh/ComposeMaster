@@ -1,17 +1,30 @@
 package com.example.appcomponents
 
+import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,24 +36,88 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.example.appcomponents.ui.theme.ComposeMasterTheme
 
 class MainActivity : ComponentActivity() {
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Toast.makeText(this, "Contacts permission granted", Toast.LENGTH_SHORT).show()
+            queryContacts()
+        } else {
+            Toast.makeText(this, "Contacts permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun queryContacts() {
+        try {
+            val contentUri = android.provider.ContactsContract.Contacts.CONTENT_URI
+            val cursor = contentResolver.query(
+                contentUri,
+                null,
+                null,
+                null,
+                null
+            )
+            
+            val contactCount = cursor?.count ?: 0
+            cursor?.close()
+            
+            Toast.makeText(
+                this,
+                "Found $contactCount contacts in your device",
+                Toast.LENGTH_LONG
+            ).show()
+        } catch (e: SecurityException) {
+            Toast.makeText(
+                this,
+                "Permission denied. Please grant contacts permission.",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    fun checkContactPermission() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_CONTACTS
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                queryContacts()
+            }
+            shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS) -> {
+                Toast.makeText(
+                    this,
+                    "Contact permission is needed to access your contacts",
+                    Toast.LENGTH_LONG
+                ).show()
+                requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+            }
+            else -> {
+                requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             ComposeMasterTheme {
-                AppComponentsApp()
+                AppComponentsApp(this)
             }
         }
     }
@@ -48,7 +125,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppComponentsApp() {
+fun AppComponentsApp(activity: MainActivity? = null) {
     var expanded by remember { mutableStateOf(false) }
     var selectedComponent by remember { mutableStateOf("Activity") }
     
@@ -114,7 +191,7 @@ fun AppComponentsApp() {
                 "Activity" -> ActivityContent()
                 "Service" -> ServiceContent()
                 "Broadcast Receiver" -> BroadcastReceiverContent()
-                "Content Provider" -> ContentProviderContent()
+                "Content Provider" -> ContentProviderContent(activity)
             }
         }
     }
@@ -122,10 +199,14 @@ fun AppComponentsApp() {
 
 @Composable
 fun ActivityContent() {
+    val context = LocalContext.current
+    val scrollState = rememberScrollState()
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -158,15 +239,32 @@ fun ActivityContent() {
                     "    }\n" +
                     "}"
         )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Button(
+            onClick = {
+                val intent = Intent(context, SecondActivity::class.java)
+                context.startActivity(intent)
+            },
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) {
+            Text("Launch Second Activity")
+        }
     }
 }
 
 @Composable
 fun ServiceContent() {
+    val context = LocalContext.current
+    val scrollState = rememberScrollState()
+    var serviceRunning by remember { mutableStateOf(false) }
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -204,15 +302,74 @@ fun ServiceContent() {
                     "    }\n" +
                     "}"
         )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Button(
+            onClick = {
+                if (!serviceRunning) {
+                    val intent = Intent(context, ExampleService::class.java)
+                    context.startService(intent)
+                    Toast.makeText(context, "Service started", Toast.LENGTH_SHORT).show()
+                    serviceRunning = true
+                } else {
+                    val intent = Intent(context, ExampleService::class.java)
+                    context.stopService(intent)
+                    Toast.makeText(context, "Service stopped", Toast.LENGTH_SHORT).show()
+                    serviceRunning = false
+                }
+            },
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) {
+            Text(if (serviceRunning) "Stop Service" else "Start Service")
+        }
     }
 }
 
 @Composable
 fun BroadcastReceiverContent() {
+    val context = LocalContext.current
+    val scrollState = rememberScrollState()
+    var receiverRegistered by remember { mutableStateOf(false) }
+    
+    val CUSTOM_ACTION = "com.example.components.CUSTOM_BROADCAST"
+    
+    val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            Toast.makeText(
+                context, 
+                "Broadcast received: ${intent?.action ?: "unknown"}", 
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+    
+    DisposableEffect(receiverRegistered) {
+        if (receiverRegistered) {
+            val filter = IntentFilter(CUSTOM_ACTION)
+            ContextCompat.registerReceiver(
+                context,
+                receiver,
+                filter,
+                ContextCompat.RECEIVER_NOT_EXPORTED
+            )
+        }
+        
+        onDispose {
+            if (receiverRegistered) {
+                try {
+                    context.unregisterReceiver(receiver)
+                } catch (e: Exception) {
+                }
+            }
+        }
+    }
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -247,15 +404,60 @@ fun BroadcastReceiverContent() {
                     "    }\n" +
                     "}"
         )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Button(
+            onClick = {
+                receiverRegistered = !receiverRegistered
+                if (receiverRegistered) {
+                    val filter = IntentFilter(CUSTOM_ACTION)
+                    ContextCompat.registerReceiver(
+                        context,
+                        receiver,
+                        filter,
+                        ContextCompat.RECEIVER_NOT_EXPORTED
+                    )
+                    Toast.makeText(context, "Receiver registered", Toast.LENGTH_SHORT).show()
+                } else {
+                    try {
+                        context.unregisterReceiver(receiver)
+                        Toast.makeText(context, "Receiver unregistered", Toast.LENGTH_SHORT).show()
+                    } catch (e: Exception) {
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) {
+            Text(if (receiverRegistered) "Unregister Receiver" else "Register Receiver")
+        }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        Button(
+            onClick = {
+                val intent = Intent(CUSTOM_ACTION)
+                context.sendBroadcast(intent)
+                Toast.makeText(context, "Broadcast sent", Toast.LENGTH_SHORT).show()
+            },
+            modifier = Modifier.fillMaxWidth(0.8f),
+            enabled = receiverRegistered
+        ) {
+            Text("Send Broadcast")
+        }
     }
 }
 
 @Composable
-fun ContentProviderContent() {
+fun ContentProviderContent(activity: MainActivity? = null) {
+    val context = LocalContext.current
+    val scrollState = rememberScrollState()
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -290,6 +492,35 @@ fun ContentProviderContent() {
                     "    \n" +
                     "    // Other required overrides...\n" +
                     "}"
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Button(
+            onClick = {
+                if (activity != null) {
+                    activity.checkContactPermission()
+                } else {
+                    Toast.makeText(
+                        context,
+                        "Cannot access contacts in this context",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            },
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) {
+            Text("Query Contacts")
+        }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        Text(
+            text = "Note: This example requires READ_CONTACTS permission",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.outline,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(0.8f)
         )
     }
 }

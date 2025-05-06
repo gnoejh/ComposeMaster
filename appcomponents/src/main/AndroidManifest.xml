@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Request permissions for content provider example -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -11,14 +14,32 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.ComposeMaster">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <!-- Second activity for demonstration -->
+        <activity 
+            android:name=".SecondActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ComposeMaster" />
+            
+        <!-- Example service -->
+        <service
+            android:name=".ExampleService"
+            android:exported="false" />
+            
+        <!-- Example broadcast receiver -->
+        <receiver
+            android:name=".ExampleReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

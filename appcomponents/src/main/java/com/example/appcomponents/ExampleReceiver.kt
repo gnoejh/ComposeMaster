@@ -32,8 +32,8 @@ class ExampleReceiver : BroadcastReceiver() {
                 ).show()
             }
             
-            // Handle custom broadcasts
-            "com.example.components.CUSTOM_BROADCAST" -> {
+            // Handle custom broadcasts using the constant defined in MainActivity
+            CUSTOM_ACTION -> {
                 Toast.makeText(
                     context,
                     "Static receiver got custom broadcast",

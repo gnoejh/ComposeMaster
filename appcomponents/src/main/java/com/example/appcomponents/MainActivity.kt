@@ -50,6 +50,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.example.appcomponents.ui.theme.ComposeMasterTheme
 
+// Define the custom action as a constant to be accessible throughout the app
+const val CUSTOM_ACTION = "com.example.components.CUSTOM_BROADCAST"
+
 class MainActivity : ComponentActivity() {
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -332,8 +335,6 @@ fun BroadcastReceiverContent() {
     val scrollState = rememberScrollState()
     var receiverRegistered by remember { mutableStateOf(false) }
     
-    val CUSTOM_ACTION = "com.example.components.CUSTOM_BROADCAST"
-    
     val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             Toast.makeText(
@@ -436,7 +437,7 @@ fun BroadcastReceiverContent() {
         
         Button(
             onClick = {
-                val intent = Intent(CUSTOM_ACTION)
+                val intent = Intent(CUSTOM_ACTION).setPackage(context.packageName)
                 context.sendBroadcast(intent)
                 Toast.makeText(context, "Broadcast sent", Toast.LENGTH_SHORT).show()
             },
